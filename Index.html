@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotak Neo Trading Terminal</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
+            --panel-bg: rgba(30, 41, 59, 0.45);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-gold: #f59e0b; /* Neo Gold style */
+            --accent-blue: #3b82f6; /* Modern Blue */
+            --success: #10b981;
+            --error: #ef4444;
+            --font-main: 'Inter', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Decorative glowing blobs */
+        .glow-blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .blob-1 { top: -100px; left: -100px; }
+        .blob-2 { bottom: -100px; right: -100px; }
+
+        .container {
+            width: 100%;
+            padding: 20px;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-gold));
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-logo {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-logo span {
+            color: var(--accent-gold);
+            -webkit-text-fill-color: var(--accent-gold);
+            font-weight: 400;
+        }
+
+        .brand-tagline {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        /* Progress Steps */
+        .steps-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .steps-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            z-index: 2;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .step-dot.active {
+            border-color: var(--accent-blue);
+            background: var(--accent-blue);
+            color: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .step-dot.completed {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+
+        /* Forms Layout & Panels */
+        .step-panel {
+            display: none;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .step-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* MPIN Input Boxes styling */
+        .mpin-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .mpin-box {
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 700;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .mpin-box:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Action Buttons */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Alert notifications */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            display: flex;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #a7f3d0;
+            display: flex;
+        }
+
+        /* Spinner for loading state */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toggle-options {
+            display: flex;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--panel-border);
+            color: var(--text-primary);
+        }
+
+        .save-creds-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .save-creds-container input {
+            cursor: pointer;
+            accent-color: var(--accent-blue);
+        }
+
+        /* Dashboard Styles */
+        .dashboard-card {
+            width: 100%;
+            max-width: 1100px; /* Full web width layout */
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 40px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            display: none;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .dashboard-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--success), var(--accent-gold));
+        }
+        .dashboard-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .order-ticket-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .info-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 16px;
+        }
+        .info-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .info-value.gold {
+            color: var(--accent-gold);
+        }
+
+        /* Tab Navigation */
+        .dash-tabs {
+            display: flex;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .dash-tab {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .dash-tab.active {
+            background: var(--panel-border);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .dash-content-panel {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+        .dash-content-panel.active {
+            display: block;
+        }
+
+        /* Order Form Styling */
+        .order-type-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .order-btn-selector {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.5);
+            color: var(--text-secondary);
+        }
+        .order-btn-selector.buy.active {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--success);
+            color: #34d399;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+        }
+        .order-btn-selector.sell.active {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--error);
+            color: #f87171;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .btn-order-submit {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+            color: white;
+        }
+        .btn-order-submit.buy {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        .btn-order-submit.sell {
+            background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .btn-order-submit:hover {
+            transform: translateY(-1px);
+        }
+        .btn-order-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-blob blob-1"></div>
+    <div class="glow-blob blob-2"></div>
+
+    <div class="container">
+        <div class="login-card">
+            <div class="brand-header">
+                <div class="brand-logo">KOTAK<span>NEO</span></div>
+                <div class="brand-tagline">Replica Terminal Setup</div>
+            </div>
+
+            <!-- Steps Progress indicator -->
+            <div class="steps-indicator">
+                <div class="step-dot active" id="dot-1">1</div>
+                <div class="step-dot" id="dot-2">2</div>
+                <div class="step-dot" id="dot-3">3</div>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alert-box" class="alert" style="display: none;">
+                <span id="alert-message"></span>
+            </div>
+
+            <!-- STEP 1: API / Basic Credentials -->
+            <div class="step-panel active" id="panel-1">
+                <div class="form-group">
+                    <label class="form-label">Consumer Key</label>
+                    <input type="text" id="consumer_key" class="form-input" placeholder="Enter Trade API Consumer Key">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mobile Number</label>
+                    <input type="text" id="mobile_number" class="form-input" placeholder="e.g. +919999999999">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">UCC (User ID)</label>
+                    <input type="text" id="ucc" class="form-input" placeholder="Enter Unique Client Code">
+                </div>
+                <div class="save-creds-container">
+                    <input type="checkbox" id="save_credentials" checked>
+                    <label for="save_credentials">Remember configurations on this device</label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="nextStep(2)">
+                        Continue
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: MPIN Screen -->
+            <div class="step-panel" id="panel-2">
+                <div class="form-group" style="text-align: center;">
+                    <label class="form-label" style="margin-bottom: 12px;">Enter 6-Digit MPIN</label>
+                    <div class="mpin-container">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 0)" onkeydown="mpinKey(event, 0)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 1)" onkeydown="mpinKey(event, 1)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 2)" onkeydown="mpinKey(event, 2)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 3)" onkeydown="mpinKey(event, 3)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 4)" onkeydown="mpinKey(event, 4)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 5)" onkeydown="mpinKey(event, 5)">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep(1)">Back</button>
+                    <button class="btn btn-primary" onclick="nextStep(3)">Continue</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: TOTP Screen -->
+            <div class="step-panel" id="panel-3">
+                <div class="toggle-options">
+                    <button id="toggle-code-btn" class="toggle-btn active" onclick="setTotpMode('code')">Live TOTP Code</button>
+                    <button id="toggle-secret-btn" class="toggle-btn" onclick="setTotpMode('secret')">TOTP Secret Key</button>
+                </div>
+
+                <!-- Live TOTP Input -->
+                <div class="form-group" id="totp-code-group">
+                    <label class="form-label">Enter Live 6-digit TOTP</label>
+                    <input type="text" id="totp_code" class="form-input" placeholder="e.g. 123456" maxlength="6">
+                </div>
+
+                <!-- TOTP Secret Input -->
+                <div class="form-group" id="totp-secret-group" style="display: none;">
+                    <label class="form-label">Enter TOTP Secret Key</label>
+                    <input type="password" id="totp_secret" class="form-input" placeholder="Enter secret key for auto-generation">
+                    <p style="font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
+                        When configured, the terminal will auto-generate TOTP codes automatically.
+                    </p>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="prevStep(2)">Back</button>
+                    <button class="btn btn-primary" id="login-submit-btn" onclick="performLogin()">
+                        <span class="spinner" id="login-spinner"></span>
+                        <span id="btn-text">Authenticate & Login</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Home Panel -->
+        <div class="dashboard-card" id="dashboard-card">
+            <div class="brand-header" style="margin-bottom: 20px;">
+                <div class="brand-logo">KOTAK<span>NEO</span></div>
+                <div class="brand-tagline">Replica Terminal Dashboard</div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="dash-tabs">
+                <button class="dash-tab active" id="tab-btn-home" onclick="switchDashTab('home')">Home</button>
+                <button class="dash-tab" id="tab-btn-order" onclick="switchDashTab('order')">Place Order</button>
+            </div>
+
+            <!-- HOME TAB PANEL -->
+            <div class="dash-content-panel active" id="dash-panel-home">
+                <h2 class="dashboard-title">Welcome, <span id="dash-user" style="color: var(--accent-gold);">UCC</span></h2>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Account User ID (UCC)</div>
+                        <div class="info-value" id="info-ucc">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Connection Status</div>
+                        <div class="info-value" style="color: var(--success);">✓ Connected</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Available Margin / Cash Balance</div>
+                        <div class="info-value gold" id="info-margin">Loading...</div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="location.reload()">Logout Session</button>
+                </div>
+            </div>
+
+            <!-- ORDER TAB PANEL -->
+            <div class="dash-content-panel" id="dash-panel-order">
+                <div class="order-ticket-container">
+                    <h2 class="dashboard-title">Order Entry</h2>
+
+                    <div class="order-type-toggle">
+                        <div class="order-btn-selector buy active" id="tx-btn-buy" onclick="setTransactionType('B')">BUY</div>
+                        <div class="order-btn-selector sell" id="tx-btn-sell" onclick="setTransactionType('S')">SELL</div>
+                    </div>
+
+                    <!-- Alert Messages for order placement -->
+                    <div id="order-alert-box" class="alert" style="display: none; margin-bottom: 16px;">
+                        <span id="order-alert-message"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Trading Symbol</label>
+                        <input type="text" id="order_symbol" class="form-input" placeholder="e.g. RELIANCE-EQ" value="RELIANCE-EQ">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Exchange Segment</label>
+                            <select id="order_segment" class="form-input" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <option value="nse_cm">NSE Cash (nse_cm)</option>
+                                <option value="nse_fo">NSE F&O (nse_fo)</option>
+                                <option value="bse_cm">BSE Cash (bse_cm)</option>
+                                <option value="bse_fo">BSE F&O (bse_fo)</option>
+                                <option value="mcx_fo">MCX F&O (mcx_fo)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Product Type</label>
+                            <select id="order_product" class="form-input" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <option value="CNC">Delivery (CNC)</option>
+                                <option value="MIS">Intraday (MIS)</option>
+                                <option value="NRML">Normal (NRML)</option>
+                                <option value="MTF">Margin Trade (MTF)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Order Type</label>
+                            <select id="order_type" class="form-input" onchange="togglePriceField(this.value)" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <option value="L">Limit (L)</option>
+                                <option value="MKT">Market (MKT)</option>
+                                <option value="SL">Stop Loss Limit (SL)</option>
+                                <option value="SL-M">Stop Loss Market (SL-M)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Validity</label>
+                            <select id="order_validity" class="form-input" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <option value="DAY">DAY</option>
+                                <option value="IOC">IOC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" id="order_qty" class="form-input" placeholder="Quantity" value="1" min="1">
+                        </div>
+                        <div class="form-group" id="price-group">
+                            <label class="form-label">Limit Price (₹)</label>
+                            <input type="number" id="order_price" class="form-input" placeholder="Price" value="1500" step="0.05">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="trigger-price-group" style="display: none;">
+                        <label class="form-label">Trigger Price (₹)</label>
+                        <input type="number" id="order_trigger_price" class="form-input" placeholder="Trigger Price" value="0" step="0.05">
+                    </div>
+
+                    <button class="btn-order-submit buy" id="order-submit-btn" onclick="submitOrder()">
+                        <span class="spinner" id="order-spinner" style="margin-right: 8px;"></span>
+                        <span id="order-btn-text">PLACE BUY ORDER</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let totpMode = 'code';
+
+        // Load saved credentials on start
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedConsumerKey = localStorage.getItem('neo_consumer_key');
+            const savedMobile = localStorage.getItem('neo_mobile');
+            const savedUCC = localStorage.getItem('neo_ucc');
+            const savedSecret = localStorage.getItem('neo_totp_secret');
+
+            if (savedConsumerKey) document.getElementById('consumer_key').value = savedConsumerKey;
+            if (savedMobile) document.getElementById('mobile_number').value = savedMobile;
+            if (savedUCC) document.getElementById('ucc').value = savedUCC;
+            if (savedSecret) {
+                document.getElementById('totp_secret').value = savedSecret;
+                setTotpMode('secret');
+            }
+        });
+
+        function showAlert(message, type = 'error') {
+            const alertBox = document.getElementById('alert-box');
+            const alertMessage = document.getElementById('alert-message');
+            
+            alertBox.className = `alert alert-${type}`;
+            alertMessage.textContent = message;
+            alertBox.style.display = 'flex';
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-box').style.display = 'none';
+        }
+
+        function setTotpMode(mode) {
+            totpMode = mode;
+            const codeGroup = document.getElementById('totp-code-group');
+            const secretGroup = document.getElementById('totp-secret-group');
+            const codeBtn = document.getElementById('toggle-code-btn');
+            const secretBtn = document.getElementById('toggle-secret-btn');
+
+            if (mode === 'code') {
+                codeGroup.style.display = 'block';
+                secretGroup.style.display = 'none';
+                codeBtn.classList.add('active');
+                secretBtn.classList.remove('active');
+            } else {
+                codeGroup.style.display = 'none';
+                secretGroup.style.display = 'block';
+                codeBtn.classList.remove('active');
+                secretBtn.classList.add('active');
+            }
+        }
+
+        // MPIN inputs focus shift helper
+        const mpinBoxes = document.querySelectorAll('.mpin-box');
+        
+        function mpinInput(element, index) {
+            // allow only numbers
+            element.value = element.value.replace(/[^0-9]/g, '');
+            if (element.value.length === 1 && index < 5) {
+                mpinBoxes[index + 1].focus();
+            }
+        }
+
+        function mpinKey(event, index) {
+            if (event.key === 'Backspace' && event.target.value.length === 0 && index > 0) {
+                mpinBoxes[index - 1].focus();
+            }
+        }
+
+        function getMpinValue() {
+            let val = '';
+            mpinBoxes.forEach(box => val += box.value);
+            return val;
+        }
+
+        function validateStep(step) {
+            hideAlert();
+            if (step === 1) {
+                const consumerKey = document.getElementById('consumer_key').value.trim();
+                const mobile = document.getElementById('mobile_number').value.trim();
+                const ucc = document.getElementById('ucc').value.trim();
+
+                if (!consumerKey || !mobile || !ucc) {
+                    showAlert('Please enter your Consumer Key, Mobile Number, and UCC.');
+                    return false;
+                }
+            } else if (step === 2) {
+                const mpin = getMpinValue();
+                if (mpin.length < 6) {
+                    showAlert('Please enter your complete 6-digit MPIN.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function nextStep(stepNum) {
+            if (!validateStep(currentStep)) return;
+
+            document.getElementById(`panel-${currentStep}`).classList.remove('active');
+            document.getElementById(`dot-${currentStep}`).classList.add('completed');
+            
+            currentStep = stepNum;
+            
+            document.getElementById(`panel-${currentStep}`).classList.add('active');
+            document.getElementById(`dot-${currentStep}`).classList.add('active');
+        }
+
+        function prevStep(stepNum) {
+            hideAlert();
+            document.getElementById(`panel-${currentStep}`).classList.remove('active');
+            document.getElementById(`dot-${currentStep}`).classList.remove('active');
+            document.getElementById(`dot-${stepNum}`).classList.remove('completed');
+            
+            currentStep = stepNum;
+            
+            document.getElementById(`panel-${currentStep}`).classList.add('active');
+        }
+
+        async function performLogin() {
+            hideAlert();
+            
+            const consumerKey = document.getElementById('consumer_key').value.trim();
+            const mobile = document.getElementById('mobile_number').value.trim();
+            const ucc = document.getElementById('ucc').value.trim();
+            const mpin = getMpinValue();
+            const totpCode = document.getElementById('totp_code').value.trim();
+            const totpSecret = document.getElementById('totp_secret').value.trim();
+
+            if (totpMode === 'code' && !totpCode) {
+                showAlert('Please enter the 6-digit live TOTP.');
+                return;
+            }
+            if (totpMode === 'secret' && !totpSecret) {
+                showAlert('Please enter your TOTP Secret Key.');
+                return;
+            }
+
+            // Save credentials if option checked
+            if (document.getElementById('save_credentials').checked) {
+                localStorage.setItem('neo_consumer_key', consumerKey);
+                localStorage.setItem('neo_mobile', mobile);
+                localStorage.setItem('neo_ucc', ucc);
+                if (totpMode === 'secret') {
+                    localStorage.setItem('neo_totp_secret', totpSecret);
+                } else {
+                    localStorage.removeItem('neo_totp_secret');
+                }
+            } else {
+                localStorage.clear();
+            }
+
+            const submitBtn = document.getElementById('login-submit-btn');
+            const spinner = document.getElementById('login-spinner');
+            const btnText = document.getElementById('btn-text');
+
+            submitBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.textContent = 'Connecting...';
+
+            try {
+                // Step 1: Initiate Login (TOTP request)
+                const initRes = await fetch('/api/initiate_login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        consumer_key: consumerKey,
+                        mobile_number: mobile,
+                        ucc: ucc,
+                        totp_code: totpMode === 'code' ? totpCode : '',
+                        totp_secret: totpMode === 'secret' ? totpSecret : ''
+                    })
+                });
+
+                const initData = await initRes.json();
+                if (!initRes.ok || !initData.success) {
+                    throw new Error(initData.error || 'Failed to verify TOTP credentials.');
+                }
+
+                btnText.textContent = 'Validating Session...';
+
+                // Step 2: Validate MPIN
+                const mpinRes = await fetch('/api/validate_mpin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mpin: mpin })
+                });
+
+                const mpinData = await mpinRes.json();
+                if (!mpinRes.ok || !mpinData.success) {
+                    throw new Error(mpinData.error || 'MPIN validation failed.');
+                }
+
+                showAlert('Login Successful!', 'success');
+                btnText.textContent = 'Loading Dashboard...';
+                
+                // Fetch limits/details
+                let marginStr = '₹ 0.00';
+                try {
+                    const limitRes = await fetch('/api/limits');
+                    const limitData = await limitRes.json();
+                    if (limitRes.ok && limitData.success) {
+                        console.log('Limits data:', limitData.limits);
+                        if (Array.isArray(limitData.limits) && limitData.limits.length > 0) {
+                            const limitObj = limitData.limits[0];
+                            const cashVal = limitObj.cashLimit || limitObj.collateralValue || limitObj.net || '0.00';
+                            marginStr = '₹ ' + parseFloat(cashVal).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                        } else if (limitData.limits && typeof limitData.limits === 'object') {
+                            const cashVal = limitData.limits.cashLimit || limitData.limits.net || '0.00';
+                            marginStr = '₹ ' + parseFloat(cashVal).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to load margins:', e);
+                    marginStr = 'Margins Unavailable';
+                }
+
+                // Populate dashboard details
+                document.getElementById('dash-user').textContent = ucc;
+                document.getElementById('info-ucc').textContent = ucc;
+                document.getElementById('info-margin').textContent = marginStr;
+
+                // Toggle card visibility
+                setTimeout(() => {
+                    document.querySelector('.login-card').style.display = 'none';
+                    document.getElementById('dashboard-card').style.display = 'block';
+                }, 800);
+
+            } catch (err) {
+                showAlert(err.message || 'An error occurred during authentication.');
+            } finally {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = 'Authenticate & Login';
+            }
+        }
+
+        // Tab switching logic
+        function switchDashTab(tabName) {
+            const homePanel = document.getElementById('dash-panel-home');
+            const orderPanel = document.getElementById('dash-panel-order');
+            const homeBtn = document.getElementById('tab-btn-home');
+            const orderBtn = document.getElementById('tab-btn-order');
+
+            if (tabName === 'home') {
+                homePanel.classList.add('active');
+                orderPanel.classList.remove('active');
+                homeBtn.classList.add('active');
+                orderBtn.classList.remove('active');
+            } else {
+                homePanel.classList.remove('active');
+                orderPanel.classList.add('active');
+                homeBtn.classList.remove('active');
+                orderBtn.classList.add('active');
+            }
+            hideOrderAlert();
+        }
+
+        // Transaction Type (B/S) switcher
+        let selectedTxType = 'B';
+        function setTransactionType(txType) {
+            selectedTxType = txType;
+            const buyBtn = document.getElementById('tx-btn-buy');
+            const sellBtn = document.getElementById('tx-btn-sell');
+            const submitBtn = document.getElementById('order-submit-btn');
+            const btnText = document.getElementById('order-btn-text');
+
+            if (txType === 'B') {
+                buyBtn.classList.add('active');
+                sellBtn.classList.remove('active');
+                submitBtn.className = 'btn-order-submit buy';
+                btnText.textContent = 'PLACE BUY ORDER';
+            } else {
+                buyBtn.classList.remove('active');
+                sellBtn.classList.add('active');
+                submitBtn.className = 'btn-order-submit sell';
+                btnText.textContent = 'PLACE SELL ORDER';
+            }
+        }
+
+        // Handle price fields based on order type
+        function togglePriceField(orderType) {
+            const priceGroup = document.getElementById('price-group');
+            const priceInput = document.getElementById('order_price');
+            const triggerGroup = document.getElementById('trigger-price-group');
+
+            if (orderType === 'MKT' || orderType === 'SL-M') {
+                priceInput.value = '0';
+                priceGroup.style.opacity = '0.5';
+                priceInput.disabled = true;
+            } else {
+                priceGroup.style.opacity = '1';
+                priceInput.disabled = false;
+                if (priceInput.value === '0') priceInput.value = '1500';
+            }
+
+            if (orderType === 'SL' || orderType === 'SL-M') {
+                triggerGroup.style.display = 'block';
+            } else {
+                triggerGroup.style.display = 'none';
+            }
+        }
+
+        function showOrderAlert(message, type = 'error') {
+            const alertBox = document.getElementById('order-alert-box');
+            const alertMessage = document.getElementById('order-alert-message');
+            
+            alertBox.className = `alert alert-${type}`;
+            alertMessage.textContent = message;
+            alertBox.style.display = 'flex';
+        }
+
+        function hideOrderAlert() {
+            document.getElementById('order-alert-box').style.display = 'none';
+        }
+
+        // Order submission API call
+        async function submitOrder() {
+            hideOrderAlert();
+
+            const symbol = document.getElementById('order_symbol').value.trim();
+            const segment = document.getElementById('order_segment').value;
+            const product = document.getElementById('order_product').value;
+            const orderType = document.getElementById('order_type').value;
+            const validity = document.getElementById('order_validity').value;
+            const qty = document.getElementById('order_qty').value.trim();
+            const price = document.getElementById('order_price').value.trim();
+            const triggerPrice = document.getElementById('order_trigger_price').value.trim();
+
+            if (!symbol) {
+                showOrderAlert('Trading symbol is required.');
+                return;
+            }
+            if (!qty || parseFloat(qty) <= 0) {
+                showOrderAlert('Please enter a valid quantity.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('order-submit-btn');
+            const spinner = document.getElementById('order-spinner');
+            const btnText = document.getElementById('order-btn-text');
+
+            submitBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+            const originalText = btnText.textContent;
+            btnText.textContent = 'Sending Order...';
+
+            try {
+                const response = await fetch('/api/place_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        exchange_segment: segment,
+                        product: product,
+                        price: price,
+                        order_type: orderType,
+                        quantity: qty,
+                        validity: validity,
+                        trading_symbol: symbol,
+                        transaction_type: selectedTxType,
+                        trigger_price: (orderType === 'SL' || orderType === 'SL-M') ? triggerPrice : '0'
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to place order.');
+                }
+
+                const orderRes = data.response;
+                console.log('Order Placement Successful:', orderRes);
+                
+                let orderId = 'Unknown ID';
+                if (orderRes && typeof orderRes === 'object') {
+                    orderId = orderRes.orderId || orderRes.nOrderId || JSON.stringify(orderRes);
+                } else {
+                    orderId = orderRes;
+                }
+
+                showOrderAlert(`Order Placed Successfully! Order ID: ${orderId}`, 'success');
+
+            } catch (err) {
+                showOrderAlert(err.message || 'An error occurred while placing the order.');
+            } finally {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = originalText;
+            }
+        }
+    </script>
+</body>
+</html>
