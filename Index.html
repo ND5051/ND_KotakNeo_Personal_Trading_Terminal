@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #020617 100%);
@@ -15,8 +18,10 @@
             --panel-border: rgba(255, 255, 255, 0.08);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --accent-gold: #f59e0b; /* Neo Gold style */
-            --accent-blue: #3b82f6; /* Modern Blue */
+            --accent-gold: #f59e0b;
+            /* Neo Gold style */
+            --accent-blue: #3b82f6;
+            /* Modern Blue */
             --success: #10b981;
             --error: #ef4444;
             --font-main: 'Inter', sans-serif;
@@ -43,16 +48,18 @@
 
         /* Decorative glowing blobs */
         .glow-blob {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
-            z-index: 0;
-            pointer-events: none;
+            display: none;
         }
-        .blob-1 { top: -100px; left: -100px; }
-        .blob-2 { bottom: -100px; right: -100px; }
+
+        .blob-1 {
+            top: -100px;
+            left: -100px;
+        }
+
+        .blob-2 {
+            bottom: -100px;
+            right: -100px;
+        }
 
         .container {
             width: 100%;
@@ -182,6 +189,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -347,7 +355,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         .toggle-options {
@@ -392,31 +402,182 @@
             accent-color: var(--accent-blue);
         }
 
-        /* Dashboard Styles */
-        .dashboard-card {
-            width: 100%;
-            max-width: 1100px; /* Full web width layout */
-            background: var(--panel-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--panel-border);
-            border-radius: 24px;
-            padding: 40px 32px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            position: relative;
-            overflow: hidden;
-            display: none;
-            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .dashboard-card::before {
-            content: '';
+        /* Watchlist & Search Styles */
+        .search-results-dropdown {
             position: absolute;
-            top: 0;
+            top: calc(100% + 4px);
             left: 0;
             right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--success), var(--accent-gold));
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
         }
+
+        .search-result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-result-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .search-result-symbol {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .search-result-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .search-result-add-btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-result-add-btn:hover {
+            transform: scale(1.05);
+            background: #2563eb;
+        }
+
+        .watchlist-table th,
+        .watchlist-table td {
+            font-size: 14px;
+        }
+
+        .watchlist-table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .watchlist-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .watchlist-symbol-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .watchlist-symbol-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .price-up {
+            color: var(--success) !important;
+        }
+
+        .price-down {
+            color: var(--error) !important;
+        }
+
+        .flash-up {
+            background: rgba(16, 185, 129, 0.15) !important;
+            transition: background 0.15s ease-out;
+        }
+
+        .flash-down {
+            background: rgba(239, 68, 68, 0.15) !important;
+            transition: background 0.15s ease-out;
+        }
+
+        .watchlist-action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .watchlist-action-btn.buy {
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            margin-right: 6px;
+        }
+
+        .watchlist-action-btn.buy:hover {
+            background: var(--success);
+            color: white;
+        }
+
+        .watchlist-action-btn.sell {
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            margin-right: 6px;
+        }
+
+        .watchlist-action-btn.sell:hover {
+            background: var(--error);
+            color: white;
+        }
+
+        .watchlist-action-btn.remove {
+            color: var(--text-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .watchlist-action-btn.remove:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* Dashboard Styles */
+        .dashboard-card {
+            width: 100vw;
+            height: 100vh;
+            display: none; /* flex when active */
+            flex-direction: column;
+            background: #0b0f19;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: #111827;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 110;
+        }
+
+        .dashboard-workspace {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: #0b0f19;
+        }
+
         .dashboard-title {
             font-family: var(--font-heading);
             font-size: 24px;
@@ -425,22 +586,26 @@
             margin-bottom: 24px;
             color: var(--text-primary);
         }
+
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
+
         .order-ticket-container {
             max-width: 600px;
             margin: 0 auto;
         }
+
         .info-item {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 14px;
             padding: 16px;
         }
+
         .info-label {
             font-size: 11px;
             color: var(--text-secondary);
@@ -448,11 +613,13 @@
             letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
+
         .info-value {
             font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
         }
+
         .info-value.gold {
             color: var(--accent-gold);
         }
@@ -466,6 +633,7 @@
             margin-bottom: 24px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .dash-tab {
             flex: 1;
             padding: 10px;
@@ -479,15 +647,19 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .dash-tab.active {
             background: var(--panel-border);
             color: var(--text-primary);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+
         .dash-content-panel {
             display: none;
             animation: fadeIn 0.4s ease forwards;
+            flex: 1;
         }
+
         .dash-content-panel.active {
             display: block;
         }
@@ -498,6 +670,7 @@
             gap: 12px;
             margin-bottom: 20px;
         }
+
         .order-btn-selector {
             flex: 1;
             padding: 12px;
@@ -512,24 +685,28 @@
             background: rgba(15, 23, 42, 0.5);
             color: var(--text-secondary);
         }
+
         .order-btn-selector.buy.active {
             background: rgba(16, 185, 129, 0.15);
             border-color: var(--success);
             color: #34d399;
             box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
         }
+
         .order-btn-selector.sell.active {
             background: rgba(239, 68, 68, 0.15);
             border-color: var(--error);
             color: #f87171;
             box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
         }
+
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             margin-bottom: 16px;
         }
+
         .btn-order-submit {
             width: 100%;
             padding: 14px;
@@ -543,24 +720,129 @@
             margin-top: 10px;
             color: white;
         }
+
         .btn-order-submit.buy {
             background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
+
         .btn-order-submit.sell {
             background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%);
             box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
+
         .btn-order-submit:hover {
             transform: translateY(-1px);
         }
+
         .btn-order-submit:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
+
+        /* Order Workspace & Depth Styles */
+        .order-workspace {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .order-workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .depth-panel {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .depth-title {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .depth-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .depth-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 10px;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .depth-table td {
+            padding: 8px 4px;
+            font-family: monospace;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .depth-bid-price {
+            color: var(--success);
+        }
+
+        .depth-ask-price {
+            color: var(--error);
+        }
+
+        .depth-totals {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 12px;
+        }
+
+        .category-toggle {
+            display: flex;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .category-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-btn.active {
+            background: var(--panel-border);
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
+
 <body>
     <div class="glow-blob blob-1"></div>
     <div class="glow-blob blob-2"></div>
@@ -614,12 +896,18 @@
                 <div class="form-group" style="text-align: center;">
                     <label class="form-label" style="margin-bottom: 12px;">Enter 6-Digit MPIN</label>
                     <div class="mpin-container">
-                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 0)" onkeydown="mpinKey(event, 0)">
-                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 1)" onkeydown="mpinKey(event, 1)">
-                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 2)" onkeydown="mpinKey(event, 2)">
-                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 3)" onkeydown="mpinKey(event, 3)">
-                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 4)" onkeydown="mpinKey(event, 4)">
-                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 5)" onkeydown="mpinKey(event, 5)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 0)"
+                            onkeydown="mpinKey(event, 0)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 1)"
+                            onkeydown="mpinKey(event, 1)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 2)"
+                            onkeydown="mpinKey(event, 2)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 3)"
+                            onkeydown="mpinKey(event, 3)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 4)"
+                            onkeydown="mpinKey(event, 4)">
+                        <input type="password" maxlength="1" class="mpin-box" oninput="mpinInput(this, 5)"
+                            onkeydown="mpinKey(event, 5)">
                     </div>
                 </div>
                 <div class="btn-group">
@@ -631,8 +919,10 @@
             <!-- STEP 3: TOTP Screen -->
             <div class="step-panel" id="panel-3">
                 <div class="toggle-options">
-                    <button id="toggle-code-btn" class="toggle-btn active" onclick="setTotpMode('code')">Live TOTP Code</button>
-                    <button id="toggle-secret-btn" class="toggle-btn" onclick="setTotpMode('secret')">TOTP Secret Key</button>
+                    <button id="toggle-code-btn" class="toggle-btn active" onclick="setTotpMode('code')">Live TOTP
+                        Code</button>
+                    <button id="toggle-secret-btn" class="toggle-btn" onclick="setTotpMode('secret')">TOTP Secret
+                        Key</button>
                 </div>
 
                 <!-- Live TOTP Input -->
@@ -644,7 +934,8 @@
                 <!-- TOTP Secret Input -->
                 <div class="form-group" id="totp-secret-group" style="display: none;">
                     <label class="form-label">Enter TOTP Secret Key</label>
-                    <input type="password" id="totp_secret" class="form-input" placeholder="Enter secret key for auto-generation">
+                    <input type="password" id="totp_secret" class="form-input"
+                        placeholder="Enter secret key for auto-generation">
                     <p style="font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
                         When configured, the terminal will auto-generate TOTP codes automatically.
                     </p>
@@ -660,129 +951,266 @@
             </div>
         </div>
 
-        <!-- Dashboard Home Panel -->
+        <!-- Dashboard Workspace Panel -->
         <div class="dashboard-card" id="dashboard-card">
-            <div class="brand-header" style="margin-bottom: 20px;">
-                <div class="brand-logo">KOTAK<span>NEO</span></div>
-                <div class="brand-tagline">Replica Terminal Dashboard</div>
-            </div>
-
-            <!-- Tab Buttons -->
-            <div class="dash-tabs">
-                <button class="dash-tab active" id="tab-btn-home" onclick="switchDashTab('home')">Home</button>
-                <button class="dash-tab" id="tab-btn-order" onclick="switchDashTab('order')">Place Order</button>
-            </div>
-
-            <!-- HOME TAB PANEL -->
-            <div class="dash-content-panel active" id="dash-panel-home">
-                <h2 class="dashboard-title">Welcome, <span id="dash-user" style="color: var(--accent-gold);">UCC</span></h2>
-
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Account User ID (UCC)</div>
-                        <div class="info-value" id="info-ucc">-</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Connection Status</div>
-                        <div class="info-value" style="color: var(--success);">✓ Connected</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Available Margin / Cash Balance</div>
-                        <div class="info-value gold" id="info-margin">Loading...</div>
-                    </div>
+            <!-- Header Row -->
+            <div class="dashboard-header">
+                <div class="brand-logo" style="margin-bottom: 0; font-size: 20px;">KOTAK<span style="color: var(--accent-gold);">NEO</span></div>
+                
+                <!-- Tab Buttons -->
+                <div class="dash-tabs" style="margin-bottom: 0; max-width: 450px; flex: 1; margin: 0 40px; border: none; background: rgba(0,0,0,0.25);">
+                    <button class="dash-tab active" id="tab-btn-home" onclick="switchDashTab('home')">Home</button>
+                    <button class="dash-tab" id="tab-btn-watchlist" onclick="switchDashTab('watchlist')">Watchlist</button>
+                    <button class="dash-tab" id="tab-btn-order" onclick="switchDashTab('order')">Place Order</button>
                 </div>
-
-                <div class="btn-group">
-                    <button class="btn btn-secondary" onclick="location.reload()">Logout Session</button>
+                
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="font-size: 13px; color: var(--text-secondary);">User: <span id="header-user" style="color: var(--accent-gold); font-weight: 600;">-</span></div>
+                    <button class="watchlist-action-btn remove" onclick="location.reload()" style="padding: 6px 12px; font-size: 12px;">Logout</button>
                 </div>
             </div>
 
-            <!-- ORDER TAB PANEL -->
-            <div class="dash-content-panel" id="dash-panel-order">
-                <div class="order-ticket-container">
-                    <h2 class="dashboard-title">Order Entry</h2>
+            <!-- Workspace content -->
+            <div class="dashboard-workspace">
+                <!-- HOME TAB PANEL -->
+                <div class="dash-content-panel active" id="dash-panel-home">
+                    <h2 class="dashboard-title" style="text-align: left; font-size: 20px; margin-bottom: 20px;">Dashboard Home</h2>
 
-                    <div class="order-type-toggle">
-                        <div class="order-btn-selector buy active" id="tx-btn-buy" onclick="setTransactionType('B')">BUY</div>
-                        <div class="order-btn-selector sell" id="tx-btn-sell" onclick="setTransactionType('S')">SELL</div>
+                    <div class="info-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
+                        <div class="info-item">
+                            <div class="info-label">Account User ID (UCC)</div>
+                            <div class="info-value" id="info-ucc">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Connection Status</div>
+                            <div class="info-value" style="color: var(--success);">✓ Connected</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Available Margin / Cash Balance</div>
+                            <div class="info-value gold" id="info-margin">Loading...</div>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- Alert Messages for order placement -->
-                    <div id="order-alert-box" class="alert" style="display: none; margin-bottom: 16px;">
-                        <span id="order-alert-message"></span>
-                    </div>
+                <!-- WATCHLIST TAB PANEL -->
+                <div class="dash-content-panel" id="dash-panel-watchlist">
+                    <h2 class="dashboard-title" style="text-align: left; font-size: 20px; margin-bottom: 20px;">Live Watchlist</h2>
 
-                    <div class="form-group">
-                        <label class="form-label">Trading Symbol</label>
-                        <input type="text" id="order_symbol" class="form-input" placeholder="e.g. RELIANCE-EQ" value="RELIANCE-EQ">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Exchange Segment</label>
-                            <select id="order_segment" class="form-input" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
-                                <option value="nse_cm">NSE Cash (nse_cm)</option>
-                                <option value="nse_fo">NSE F&O (nse_fo)</option>
-                                <option value="bse_cm">BSE Cash (bse_cm)</option>
-                                <option value="bse_fo">BSE F&O (bse_fo)</option>
-                                <option value="mcx_fo">MCX F&O (mcx_fo)</option>
+                    <!-- Search Component -->
+                    <div class="search-container" style="position: relative; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="watchlist_search_input" class="form-input"
+                                placeholder="Search for Stock / F&O Symbol (e.g. RELIANCE, NIFTY)..."
+                                oninput="debounceSearch()">
+                            <select id="search_segment" class="form-input"
+                                style="width: 125px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                <option value="nse_cm">NSE Cash</option>
+                                <option value="nse_fo">NSE F&O</option>
+                                <option value="bse_cm">BSE Cash</option>
+                                <option value="bse_fo">BSE F&O</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Product Type</label>
-                            <select id="order_product" class="form-input" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
-                                <option value="CNC">Delivery (CNC)</option>
-                                <option value="MIS">Intraday (MIS)</option>
-                                <option value="NRML">Normal (NRML)</option>
-                                <option value="MTF">Margin Trade (MTF)</option>
-                            </select>
-                        </div>
+                        <!-- Search Results Dropdown -->
+                        <div id="search_results_dropdown" class="search-results-dropdown" style="display: none;"></div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Order Type</label>
-                            <select id="order_type" class="form-input" onchange="togglePriceField(this.value)" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
-                                <option value="L">Limit (L)</option>
-                                <option value="MKT">Market (MKT)</option>
-                                <option value="SL">Stop Loss Limit (SL)</option>
-                                <option value="SL-M">Stop Loss Market (SL-M)</option>
-                            </select>
+                    <!-- Watchlist Table -->
+                    <div class="table-container"
+                        style="overflow-x: auto; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 12px; margin-bottom: 20px; flex: 1;">
+                        <table class="watchlist-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr
+                                    style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-secondary); font-size: 12px; text-transform: uppercase;">
+                                    <th style="padding: 12px 8px;">Symbol</th>
+                                    <th style="padding: 12px 8px;">Segment</th>
+                                    <th style="padding: 12px 8px; text-align: right;">LTP</th>
+                                    <th style="padding: 12px 8px; text-align: right;">Change</th>
+                                    <th style="padding: 12px 8px; text-align: center;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="watchlist_tbody">
+                                <tr id="watchlist_empty_row">
+                                    <td colspan="5"
+                                        style="text-align: center; padding: 24px; color: var(--text-secondary);">Your
+                                        Watchlist is empty. Search for symbols above to add them.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ORDER TAB PANEL -->
+                <div class="dash-content-panel" id="dash-panel-order">
+                    <div class="order-workspace" style="height: 100%;">
+                        <!-- Left: Order Form & Basket Legs -->
+                        <div class="order-ticket-container" style="margin: 0; max-width: 100%;">
+                            <h2 class="dashboard-title" style="text-align: left; font-size: 20px; margin-bottom: 20px;">Order Entry</h2>
+
+                            <div class="category-toggle">
+                                <button id="cat-btn-single" class="category-btn active" onclick="setOrderCategory('single')">Single Order</button>
+                                <button id="cat-btn-basket" class="category-btn" onclick="setOrderCategory('basket')">Basket Order</button>
+                            </div>
+
+                            <div class="order-type-toggle">
+                                <div class="order-btn-selector buy active" id="tx-btn-buy" onclick="setTransactionType('B')">BUY</div>
+                                <div class="order-btn-selector sell" id="tx-btn-sell" onclick="setTransactionType('S')">SELL</div>
+                            </div>
+
+                            <!-- Alert Messages for order placement -->
+                            <div id="order-alert-box" class="alert" style="display: none; margin-bottom: 16px;">
+                                <span id="order-alert-message"></span>
+                            </div>
+
+                            <div class="form-group" style="position: relative;">
+                                <label class="form-label">Trading Symbol</label>
+                                <input type="text" id="order_symbol" class="form-input" placeholder="Search stock/F&O (e.g. RELIANCE)..."
+                                    value="RELIANCE-EQ" oninput="debounceOrderSearch()">
+                                <!-- Order Search Results Dropdown -->
+                                <div id="order_search_results" class="search-results-dropdown" style="display: none; top: 100%;"></div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Exchange Segment</label>
+                                    <select id="order_segment" class="form-input"
+                                        style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                        <option value="nse_cm">NSE Cash (nse_cm)</option>
+                                        <option value="nse_fo">NSE F&O (nse_fo)</option>
+                                        <option value="bse_cm">BSE Cash (bse_cm)</option>
+                                        <option value="bse_fo">BSE F&O (bse_fo)</option>
+                                        <option value="mcx_fo">MCX F&O (mcx_fo)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Product Type</label>
+                                    <select id="order_product" class="form-input"
+                                        style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                        <option value="CNC">Delivery (CNC)</option>
+                                        <option value="MIS">Intraday (MIS)</option>
+                                        <option value="NRML">Normal (NRML)</option>
+                                        <option value="MTF">Margin Trade (MTF)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Order Type</label>
+                                    <select id="order_type" class="form-input" onchange="togglePriceField(this.value)"
+                                        style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                        <option value="L">Limit (L)</option>
+                                        <option value="MKT">Market (MKT)</option>
+                                        <option value="SL">Stop Loss Limit (SL)</option>
+                                        <option value="SL-M">Stop Loss Market (SL-M)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Validity</label>
+                                    <select id="order_validity" class="form-input"
+                                        style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
+                                        <option value="DAY">DAY</option>
+                                        <option value="IOC">IOC</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Quantity</label>
+                                    <input type="number" id="order_qty" class="form-input" placeholder="Quantity" value="1"
+                                        min="1">
+                                </div>
+                                <div class="form-group" id="price-group">
+                                    <label class="form-label">Limit Price (₹)</label>
+                                    <input type="number" id="order_price" class="form-input" placeholder="Price" value="1500"
+                                        step="0.05">
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="trigger-price-group" style="display: none;">
+                                <label class="form-label">Trigger Price (₹)</label>
+                                <input type="number" id="order_trigger_price" class="form-input" placeholder="Trigger Price"
+                                    value="0" step="0.05">
+                            </div>
+
+                            <div id="order-submit-buttons-container">
+                                <button class="btn-order-submit buy" id="order-submit-btn" onclick="handleOrderAction()">
+                                    <span class="spinner" id="order-spinner" style="margin-right: 8px;"></span>
+                                    <span id="order-btn-text">PLACE BUY ORDER</span>
+                                </button>
+                            </div>
+
+                            <!-- Basket Legs Section -->
+                            <div id="basket-section" style="display: none; margin-top: 20px;">
+                                <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--text-primary); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;">Basket Legs</h3>
+                                
+                                <!-- Dynamic Est. Margin required -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+                                    <div style="font-size: 12px; color: var(--text-secondary);">Est. Basket Premium/Margin:</div>
+                                    <div style="font-size: 15px; font-weight: 700; color: var(--accent-gold);" id="basket_estimated_margin">₹ 0.00</div>
+                                </div>
+
+                                <div class="basket-table-container" style="overflow-x: auto; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 6px; margin-bottom: 12px; max-height: 170px; overflow-y: auto;">
+                                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 11px;">
+                                        <thead>
+                                            <tr style="color: var(--text-secondary); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                                <th style="padding: 4px;">#</th>
+                                                <th style="padding: 4px;">Leg Details</th>
+                                                <th style="padding: 4px; text-align: right;">Qty</th>
+                                                <th style="padding: 4px; text-align: right;">Order</th>
+                                                <th style="padding: 4px;">Status</th>
+                                                <th style="padding: 4px; text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="basket_legs_tbody">
+                                            <tr>
+                                                <td colspan="6" style="text-align: center; padding: 12px; color: var(--text-secondary);">No legs in basket. Use the form above and click "Add Leg to Basket".</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <button class="btn btn-secondary" id="basket-clear-btn" onclick="clearBasket()" style="flex: 1; padding: 8px; font-size: 13px;">Clear Basket</button>
+                                    <button class="btn btn-primary" id="basket-submit-btn" onclick="submitBasket()" style="flex: 2; padding: 8px; font-size: 13px; background: linear-gradient(135deg, var(--success) 0%, #059669 100%);">
+                                        <span class="spinner" id="basket-spinner" style="margin-right: 8px;"></span>
+                                        Submit Basket
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Validity</label>
-                            <select id="order_validity" class="form-input" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);">
-                                <option value="DAY">DAY</option>
-                                <option value="IOC">IOC</option>
-                            </select>
+
+                        <!-- Right: Market Depth -->
+                        <div class="depth-panel">
+                            <div class="depth-title">
+                                <span id="depth_active_symbol">Market Depth</span>
+                                <span style="font-size: 11px; color: var(--text-secondary); background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">Live Depth</span>
+                            </div>
+                            <table class="depth-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left; padding: 8px 4px;">Orders</th>
+                                        <th style="text-align: right; padding: 8px 4px;">Bid Qty</th>
+                                        <th style="text-align: right; padding: 8px 4px;">Bid Price</th>
+                                        <th style="text-align: left; padding: 8px 4px; padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.05);">Ask Price</th>
+                                        <th style="text-align: right; padding: 8px 4px;">Ask Qty</th>
+                                        <th style="text-align: right; padding: 8px 4px;">Orders</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="depth_tbody">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; padding: 32px 0; color: var(--text-secondary);">No symbol selected</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="depth-totals">
+                                <div>Total Bid Qty: <strong id="depth_total_buy" style="color: var(--success);">0</strong></div>
+                                <div>Total Ask Qty: <strong id="depth_total_sell" style="color: var(--error);">0</strong></div>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Quantity</label>
-                            <input type="number" id="order_qty" class="form-input" placeholder="Quantity" value="1" min="1">
-                        </div>
-                        <div class="form-group" id="price-group">
-                            <label class="form-label">Limit Price (₹)</label>
-                            <input type="number" id="order_price" class="form-input" placeholder="Price" value="1500" step="0.05">
-                        </div>
-                    </div>
-
-                    <div class="form-group" id="trigger-price-group" style="display: none;">
-                        <label class="form-label">Trigger Price (₹)</label>
-                        <input type="number" id="order_trigger_price" class="form-input" placeholder="Trigger Price" value="0" step="0.05">
-                    </div>
-
-                    <button class="btn-order-submit buy" id="order-submit-btn" onclick="submitOrder()">
-                        <span class="spinner" id="order-spinner" style="margin-right: 8px;"></span>
-                        <span id="order-btn-text">PLACE BUY ORDER</span>
-                    </button>
                 </div>
             </div>
         </div>
-
-    </div>
 
     <script>
         let currentStep = 1;
@@ -807,7 +1235,7 @@
         function showAlert(message, type = 'error') {
             const alertBox = document.getElementById('alert-box');
             const alertMessage = document.getElementById('alert-message');
-            
+
             alertBox.className = `alert alert-${type}`;
             alertMessage.textContent = message;
             alertBox.style.display = 'flex';
@@ -839,7 +1267,7 @@
 
         // MPIN inputs focus shift helper
         const mpinBoxes = document.querySelectorAll('.mpin-box');
-        
+
         function mpinInput(element, index) {
             // allow only numbers
             element.value = element.value.replace(/[^0-9]/g, '');
@@ -886,9 +1314,9 @@
 
             document.getElementById(`panel-${currentStep}`).classList.remove('active');
             document.getElementById(`dot-${currentStep}`).classList.add('completed');
-            
+
             currentStep = stepNum;
-            
+
             document.getElementById(`panel-${currentStep}`).classList.add('active');
             document.getElementById(`dot-${currentStep}`).classList.add('active');
         }
@@ -898,15 +1326,15 @@
             document.getElementById(`panel-${currentStep}`).classList.remove('active');
             document.getElementById(`dot-${currentStep}`).classList.remove('active');
             document.getElementById(`dot-${stepNum}`).classList.remove('completed');
-            
+
             currentStep = stepNum;
-            
+
             document.getElementById(`panel-${currentStep}`).classList.add('active');
         }
 
         async function performLogin() {
             hideAlert();
-            
+
             const consumerKey = document.getElementById('consumer_key').value.trim();
             const mobile = document.getElementById('mobile_number').value.trim();
             const ucc = document.getElementById('ucc').value.trim();
@@ -980,7 +1408,7 @@
 
                 showAlert('Login Successful!', 'success');
                 btnText.textContent = 'Loading Dashboard...';
-                
+
                 // Fetch limits/details
                 let marginStr = '₹ 0.00';
                 try {
@@ -1003,14 +1431,18 @@
                 }
 
                 // Populate dashboard details
-                document.getElementById('dash-user').textContent = ucc;
+                if (document.getElementById('header-user')) {
+                    document.getElementById('header-user').textContent = ucc;
+                }
                 document.getElementById('info-ucc').textContent = ucc;
                 document.getElementById('info-margin').textContent = marginStr;
 
                 // Toggle card visibility
                 setTimeout(() => {
                     document.querySelector('.login-card').style.display = 'none';
-                    document.getElementById('dashboard-card').style.display = 'block';
+                    document.getElementById('dashboard-card').style.display = 'flex';
+                    initLocalWebSocket();
+                    loadWatchlist();
                 }, 800);
 
             } catch (err) {
@@ -1025,22 +1457,795 @@
         // Tab switching logic
         function switchDashTab(tabName) {
             const homePanel = document.getElementById('dash-panel-home');
+            const watchlistPanel = document.getElementById('dash-panel-watchlist');
             const orderPanel = document.getElementById('dash-panel-order');
+
             const homeBtn = document.getElementById('tab-btn-home');
+            const watchlistBtn = document.getElementById('tab-btn-watchlist');
             const orderBtn = document.getElementById('tab-btn-order');
+
+            homePanel.classList.remove('active');
+            watchlistPanel.classList.remove('active');
+            orderPanel.classList.remove('active');
+
+            homeBtn.classList.remove('active');
+            watchlistBtn.classList.remove('active');
+            orderBtn.classList.remove('active');
 
             if (tabName === 'home') {
                 homePanel.classList.add('active');
-                orderPanel.classList.remove('active');
                 homeBtn.classList.add('active');
-                orderBtn.classList.remove('active');
+            } else if (tabName === 'watchlist') {
+                watchlistPanel.classList.add('active');
+                watchlistBtn.classList.add('active');
+                loadWatchlist();
             } else {
-                homePanel.classList.remove('active');
                 orderPanel.classList.add('active');
-                homeBtn.classList.remove('active');
                 orderBtn.classList.add('active');
             }
             hideOrderAlert();
+        }
+
+        // Search & Watchlist Logic
+        let searchTimeout = null;
+        let localWs = null;
+        let watchlist = [];
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(searchSymbols, 300);
+        }
+
+        async function searchSymbols() {
+            const query = document.getElementById('watchlist_search_input').value.trim();
+            const segment = document.getElementById('search_segment').value;
+            const dropdown = document.getElementById('search_results_dropdown');
+
+            if (!query) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&segment=${segment}`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    displaySearchResults(data.results);
+                } else {
+                    dropdown.innerHTML = `<div style="padding: 12px; color: var(--error); text-align: center;">${data.error || 'Error searching symbols'}</div>`;
+                    dropdown.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function displaySearchResults(results) {
+            const dropdown = document.getElementById('search_results_dropdown');
+            if (!results || results.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 12px; color: var(--text-secondary); text-align: center;">No matches found</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            results.forEach(item => {
+                const token = item.pSymbol || item.pContractId;
+                const tradingSymbol = item.pTrdSymbol || item.pSymbolName;
+                const desc = item.pDesc || '';
+                const segment = item.pExchSeg || item.pExchange;
+                const symbol_name = item.pSymbolName;
+
+                html += `
+                    <div class="search-result-item" onclick="addToWatchlist('${token}', '${segment}', '${tradingSymbol}', '${symbol_name}', '${desc.replace(/'/g, "\\'")}')">
+                        <div>
+                            <div class="search-result-symbol">${tradingSymbol}</div>
+                            <div class="search-result-desc">${desc}</div>
+                        </div>
+                        <button class="search-result-add-btn">
+                            + Add
+                        </button>
+                    </div>
+                `;
+            });
+
+            dropdown.innerHTML = html;
+            dropdown.style.display = 'block';
+        }
+
+        // Hide search dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            const container = document.querySelector('.search-container');
+            const dropdown = document.getElementById('search_results_dropdown');
+            if (dropdown && container && !container.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        async function loadWatchlist() {
+            try {
+                const res = await fetch('/api/watchlist');
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    watchlist = data.watchlist;
+                    renderWatchlist();
+                }
+            } catch (err) {
+                console.error('Failed to load watchlist:', err);
+            }
+        }
+
+        async function addToWatchlist(token, segment, tradingSymbol, symbol_name, desc) {
+            document.getElementById('watchlist_search_input').value = '';
+            document.getElementById('search_results_dropdown').style.display = 'none';
+
+            try {
+                const res = await fetch('/api/watchlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token: token,
+                        segment: segment,
+                        trading_symbol: tradingSymbol,
+                        symbol_name: symbol_name,
+                        description: desc
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    watchlist = data.watchlist;
+                    renderWatchlist();
+                }
+            } catch (err) {
+                console.error('Error adding to watchlist:', err);
+            }
+        }
+
+        async function removeFromWatchlist(token, segment) {
+            try {
+                const res = await fetch('/api/watchlist/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token, segment: segment })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    watchlist = data.watchlist;
+                    renderWatchlist();
+                }
+            } catch (err) {
+                console.error('Error deleting from watchlist:', err);
+            }
+        }
+
+        function renderWatchlist() {
+            const tbody = document.getElementById('watchlist_tbody');
+            if (!watchlist || watchlist.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="watchlist_empty_row">
+                        <td colspan="5" style="text-align: center; padding: 24px; color: var(--text-secondary);">Your Watchlist is empty. Search for symbols above to add them.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            watchlist.forEach(item => {
+                html += `
+                    <tr id="row-${item.segment}-${item.token}" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.15s ease-out;">
+                        <td style="padding: 12px 8px;">
+                            <div class="watchlist-symbol-name">${item.trading_symbol}</div>
+                            <div class="watchlist-symbol-desc">${item.description || ''}</div>
+                        </td>
+                        <td style="padding: 12px 8px; text-transform: uppercase; font-size: 12px; color: var(--text-secondary);">${item.segment}</td>
+                        <td id="ltp-${item.segment}-${item.token}" style="padding: 12px 8px; text-align: right; font-weight: 600; color: var(--text-primary); transition: color 0.15s ease-out;">-</td>
+                        <td id="change-${item.segment}-${item.token}" style="padding: 12px 8px; text-align: right; font-weight: 500; transition: color 0.15s ease-out;">-</td>
+                        <td style="padding: 12px 8px; text-align: center;">
+                            <button class="watchlist-action-btn buy" onclick="quickOrder('B', '${item.trading_symbol}', '${item.segment}')">BUY</button>
+                            <button class="watchlist-action-btn sell" onclick="quickOrder('S', '${item.trading_symbol}', '${item.segment}')">SELL</button>
+                            <button class="watchlist-action-btn remove" onclick="removeFromWatchlist('${item.token}', '${item.segment}')">✕</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Order Search Autocomplete Logic
+        let orderSearchTimeout = null;
+
+        function debounceOrderSearch() {
+            clearTimeout(orderSearchTimeout);
+            orderSearchTimeout = setTimeout(searchOrderSymbols, 300);
+        }
+
+        async function searchOrderSymbols() {
+            const query = document.getElementById('order_symbol').value.trim();
+            const segment = document.getElementById('order_segment').value;
+            const dropdown = document.getElementById('order_search_results');
+
+            if (!query) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&segment=${segment}`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    displayOrderSearchResults(data.results);
+                } else {
+                    dropdown.innerHTML = `<div style="padding: 8px; color: var(--error); text-align: center;">${data.error || 'Error'}</div>`;
+                    dropdown.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function displayOrderSearchResults(results) {
+            const dropdown = document.getElementById('order_search_results');
+            if (!results || results.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 8px; color: var(--text-secondary); text-align: center;">No matches</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            results.forEach(item => {
+                const token = item.pSymbol || item.pContractId;
+                const tradingSymbol = item.pTrdSymbol || item.pSymbolName;
+                const desc = item.pDesc || '';
+                const segment = item.pExchSeg || item.pExchange;
+
+                html += `
+                    <div class="search-result-item" style="padding: 8px 12px; font-size: 13px;" onclick="selectOrderSymbol('${token}', '${segment}', '${tradingSymbol}')">
+                        <div>
+                            <div class="search-result-symbol">${tradingSymbol}</div>
+                            <div class="search-result-desc" style="font-size: 11px;">${desc}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            dropdown.innerHTML = html;
+            dropdown.style.display = 'block';
+        }
+
+        function selectOrderSymbol(token, segment, tradingSymbol) {
+            document.getElementById('order_symbol').value = tradingSymbol;
+            document.getElementById('order_segment').value = segment;
+            document.getElementById('order_search_results').style.display = 'none';
+            changeActiveDepthSymbol(token, segment);
+        }
+
+        // Hide search dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            const container = document.getElementById('order_symbol');
+            const dropdown = document.getElementById('order_search_results');
+            if (dropdown && container && e.target !== container && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Market Depth Active Stream Tracking
+        let activeDepthToken = null;
+        let activeDepthSegment = null;
+
+        async function changeActiveDepthSymbol(token, segment) {
+            // Unsubscribe from previous active depth if any
+            if (activeDepthToken && activeDepthSegment) {
+                const inWatchlist = watchlist.some(item => item.token === activeDepthToken && item.segment === activeDepthSegment);
+                if (!inWatchlist) {
+                    try {
+                        await fetch('/api/unsubscribe_active_symbol', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: activeDepthToken, segment: activeDepthSegment })
+                        });
+                    } catch (e) { console.error(e); }
+                }
+            }
+
+            activeDepthToken = token;
+            activeDepthSegment = segment;
+
+            if (token && segment) {
+                document.getElementById('depth_active_symbol').textContent = `Depth: ${document.getElementById('order_symbol').value}`;
+                renderEmptyDepthTable('Loading live depth...');
+
+                try {
+                    await fetch('/api/subscribe_active_symbol', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: token, segment: segment })
+                    });
+                } catch (e) { console.error(e); }
+            } else {
+                document.getElementById('depth_active_symbol').textContent = 'Market Depth';
+                renderEmptyDepthTable('No symbol selected');
+            }
+        }
+
+        function renderEmptyDepthTable(message) {
+            document.getElementById('depth_tbody').innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 32px 0; color: var(--text-secondary);">${message}</td>
+                </tr>
+            `;
+            document.getElementById('depth_total_buy').textContent = '0';
+            document.getElementById('depth_total_sell').textContent = '0';
+        }
+
+        function updateActiveDepthTick(key, data) {
+            if (!activeDepthToken || !activeDepthSegment) return;
+            const targetKey = `${activeDepthSegment}|${activeDepthToken}`;
+            if (key !== targetKey) return;
+
+            const tbody = document.getElementById('depth_tbody');
+            const bids = data.buy || [];
+            const asks = data.sell || [];
+
+            let html = '';
+            // Render exactly 5 depth rows
+            for (let i = 0; i < 5; i++) {
+                const bid = bids[i] || { price: 0, quantity: 0, orders: 0 };
+                const ask = asks[i] || { price: 0, quantity: 0, orders: 0 };
+
+                html += `
+                    <tr>
+                        <td style="color: var(--success); text-align: left; padding: 6px 4px;">${bid.orders > 0 ? bid.orders : '-'}</td>
+                        <td style="color: var(--success); text-align: right; font-weight: 600; padding: 6px 4px;">${bid.quantity > 0 ? bid.quantity.toLocaleString('en-IN') : '-'}</td>
+                        <td class="depth-bid-price" style="text-align: right; font-weight: bold; padding: 6px 4px;">${bid.price > 0 ? '₹' + bid.price.toFixed(2) : '-'}</td>
+                        <td class="depth-ask-price" style="text-align: left; font-weight: bold; padding: 6px 4px; padding-left: 8px; border-left: 1px solid rgba(255,255,255,0.05);">${ask.price > 0 ? '₹' + ask.price.toFixed(2) : '-'}</td>
+                        <td style="color: var(--error); text-align: right; font-weight: 600; padding: 6px 4px;">${ask.quantity > 0 ? ask.quantity.toLocaleString('en-IN') : '-'}</td>
+                        <td style="color: var(--error); text-align: right; padding: 6px 4px;">${ask.orders > 0 ? ask.orders : '-'}</td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
+
+            const totalBuy = bids.reduce((sum, item) => sum + (item.quantity || 0), 0);
+            const totalSell = asks.reduce((sum, item) => sum + (item.quantity || 0), 0);
+            document.getElementById('depth_total_buy').textContent = totalBuy.toLocaleString('en-IN');
+            document.getElementById('depth_total_sell').textContent = totalSell.toLocaleString('en-IN');
+        }
+
+        // Basket Category Toggling
+        let selectedCategory = 'single';
+        let basketOrders = [];
+
+        function setOrderCategory(cat) {
+            selectedCategory = cat;
+            const singleBtn = document.getElementById('cat-btn-single');
+            const basketBtn = document.getElementById('cat-btn-basket');
+            const basketSection = document.getElementById('basket-section');
+            const submitBtn = document.getElementById('order-submit-btn');
+            const btnText = document.getElementById('order-btn-text');
+
+            if (cat === 'single') {
+                singleBtn.classList.add('active');
+                basketBtn.classList.remove('active');
+                basketSection.style.display = 'none';
+                setTransactionType(selectedTxType);
+            } else {
+                singleBtn.classList.remove('active');
+                basketBtn.classList.add('active');
+                basketSection.style.display = 'block';
+                submitBtn.className = 'btn-order-submit buy';
+                submitBtn.style.background = 'linear-gradient(135deg, var(--accent-blue) 0%, #1d4ed8 100%)';
+                submitBtn.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                btnText.textContent = 'ADD LEG TO BASKET';
+            }
+        }
+
+        function handleOrderAction() {
+            if (selectedCategory === 'single') {
+                submitOrder();
+            } else {
+                addLegToBasket();
+            }
+        }
+
+        function addLegToBasket() {
+            const symbol = document.getElementById('order_symbol').value.trim();
+            const segment = document.getElementById('order_segment').value;
+            const product = document.getElementById('order_product').value;
+            const orderType = document.getElementById('order_type').value;
+            const validity = document.getElementById('order_validity').value;
+            const qty = document.getElementById('order_qty').value.trim();
+            const price = document.getElementById('order_price').value.trim();
+            const triggerPrice = document.getElementById('order_trigger_price').value.trim();
+
+            if (!symbol) {
+                showOrderAlert('Trading symbol is required.');
+                return;
+            }
+            if (!qty || parseFloat(qty) <= 0) {
+                showOrderAlert('Please enter a valid quantity.');
+                return;
+            }
+
+            const leg = {
+                id: Date.now() + Math.random().toString(36).substr(2, 5),
+                token: activeDepthToken,
+                trading_symbol: symbol,
+                exchange_segment: segment,
+                product: product,
+                order_type: orderType,
+                validity: validity,
+                quantity: qty,
+                price: (orderType === 'MKT' || orderType === 'SL-M') ? '0' : price,
+                transaction_type: selectedTxType,
+                trigger_price: (orderType === 'SL' || orderType === 'SL-M') ? triggerPrice : '0',
+                status: 'Pending',
+                order_id: null,
+                error: null
+            };
+
+            basketOrders.push(leg);
+            renderBasketLegs();
+            calculateEstimatedMargin();
+            showOrderAlert('Leg added to basket successfully.', 'success');
+        }
+
+        function removeBasketLeg(id) {
+            basketOrders = basketOrders.filter(leg => leg.id !== id);
+            if (editingLegId === id) {
+                cancelEditLeg();
+            }
+            renderBasketLegs();
+            calculateEstimatedMargin();
+        }
+
+        function editBasketLeg(id) {
+            const leg = basketOrders.find(l => l.id === id);
+            if (!leg) return;
+
+            editingLegId = id;
+            
+            document.getElementById('order_symbol').value = leg.trading_symbol;
+            document.getElementById('order_segment').value = leg.exchange_segment;
+            document.getElementById('order_product').value = leg.product;
+            document.getElementById('order_type').value = leg.order_type;
+            document.getElementById('order_validity').value = leg.validity;
+            document.getElementById('order_qty').value = leg.quantity;
+            document.getElementById('order_price').value = leg.price;
+            document.getElementById('order_trigger_price').value = leg.trigger_price;
+            
+            setTransactionType(leg.transaction_type);
+            togglePriceField(leg.order_type);
+
+            changeActiveDepthSymbol(leg.token, leg.exchange_segment);
+
+            const container = document.getElementById('order-submit-buttons-container');
+            container.innerHTML = `
+                <div style="display: flex; gap: 12px; width: 100%; margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="cancelEditLeg()" style="flex: 1; padding: 14px; border-radius: 12px;">Cancel Edit</button>
+                    <button class="btn btn-primary" onclick="updateBasketLeg()" style="flex: 2; padding: 14px; border-radius: 12px; background: linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%); font-weight: 700; color: white; border: none; cursor: pointer;">Update Leg</button>
+                </div>
+            `;
+            showOrderAlert('Editing leg details in form above.', 'success');
+        }
+
+        function cancelEditLeg() {
+            editingLegId = null;
+            resetOrderSubmitButtons();
+            hideOrderAlert();
+        }
+
+        function updateBasketLeg() {
+            if (!editingLegId) return;
+
+            const leg = basketOrders.find(l => l.id === editingLegId);
+            if (!leg) return;
+
+            const symbol = document.getElementById('order_symbol').value.trim();
+            const segment = document.getElementById('order_segment').value;
+            const product = document.getElementById('order_product').value;
+            const orderType = document.getElementById('order_type').value;
+            const validity = document.getElementById('order_validity').value;
+            const qty = document.getElementById('order_qty').value.trim();
+            const price = document.getElementById('order_price').value.trim();
+            const triggerPrice = document.getElementById('order_trigger_price').value.trim();
+
+            if (!symbol) {
+                showOrderAlert('Trading symbol is required.');
+                return;
+            }
+            if (!qty || parseFloat(qty) <= 0) {
+                showOrderAlert('Please enter a valid quantity.');
+                return;
+            }
+
+            leg.trading_symbol = symbol;
+            leg.exchange_segment = segment;
+            leg.product = product;
+            leg.order_type = orderType;
+            leg.validity = validity;
+            leg.quantity = qty;
+            leg.price = (orderType === 'MKT' || orderType === 'SL-M') ? '0' : price;
+            leg.transaction_type = selectedTxType;
+            leg.trigger_price = (orderType === 'SL' || orderType === 'SL-M') ? triggerPrice : '0';
+            leg.token = activeDepthToken;
+
+            editingLegId = null;
+            resetOrderSubmitButtons();
+            renderBasketLegs();
+            calculateEstimatedMargin();
+            showOrderAlert('Leg updated successfully.', 'success');
+        }
+
+        function resetOrderSubmitButtons() {
+            const container = document.getElementById('order-submit-buttons-container');
+            const submitBtnText = selectedCategory === 'single' 
+                ? (selectedTxType === 'B' ? 'PLACE BUY ORDER' : 'PLACE SELL ORDER')
+                : 'ADD LEG TO BASKET';
+            
+            const submitBtnClass = selectedCategory === 'single'
+                ? (selectedTxType === 'B' ? 'btn-order-submit buy' : 'btn-order-submit sell')
+                : 'btn-order-submit buy';
+
+            const inlineBg = selectedCategory === 'basket' 
+                ? 'background: linear-gradient(135deg, var(--accent-blue) 0%, #1d4ed8 100%); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);'
+                : '';
+
+            container.innerHTML = `
+                <button class="${submitBtnClass}" id="order-submit-btn" style="${inlineBg}" onclick="handleOrderAction()">
+                    <span class="spinner" id="order-spinner" style="margin-right: 8px;"></span>
+                    <span id="order-btn-text">${submitBtnText}</span>
+                </button>
+            `;
+        }
+
+        function clearBasket() {
+            basketOrders = [];
+            editingLegId = null;
+            resetOrderSubmitButtons();
+            renderBasketLegs();
+            calculateEstimatedMargin();
+            hideOrderAlert();
+        }
+
+        function renderBasketLegs() {
+            const tbody = document.getElementById('basket_legs_tbody');
+            if (basketOrders.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 12px; color: var(--text-secondary);">No legs in basket. Use the form above and click "Add Leg to Basket".</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            basketOrders.forEach((leg, index) => {
+                let statusBadge = '';
+                if (leg.status === 'Pending') {
+                    statusBadge = `<span style="background: rgba(245, 158, 11, 0.15); color: var(--accent-gold); padding: 2px 6px; border-radius: 4px; font-size: 11px;">Pending</span>`;
+                } else if (leg.status === 'Success') {
+                    statusBadge = `<span style="background: rgba(16, 185, 129, 0.15); color: var(--success); padding: 2px 6px; border-radius: 4px; font-size: 11px;">Success (ID: ${leg.order_id})</span>`;
+                } else {
+                    statusBadge = `<span style="background: rgba(239, 68, 68, 0.15); color: var(--error); padding: 2px 6px; border-radius: 4px; font-size: 11px;" title="${leg.error}">Failed</span>`;
+                }
+
+                const actionLabel = leg.transaction_type === 'B' ? 'BUY' : 'SELL';
+                const actionClass = leg.transaction_type === 'B' ? 'price-up' : 'price-down';
+
+                html += `
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                        <td style="padding: 8px 4px;">#${index+1}</td>
+                        <td style="padding: 8px 4px;">
+                            <span class="${actionClass}" style="font-weight: 700; margin-right: 4px;">${actionLabel}</span>
+                            <span style="color: var(--accent-blue); cursor: pointer; text-decoration: underline; font-weight: 600;" onclick="selectOrderSymbol('${leg.token}', '${leg.exchange_segment}', '${leg.trading_symbol}')" title="Click to view live depth">
+                                ${leg.trading_symbol}
+                            </span>
+                            <div style="font-size: 9px; color: var(--text-secondary);">${leg.exchange_segment} | ${leg.product}</div>
+                        </td>
+                        <td style="padding: 8px 4px; text-align: right;">${leg.quantity}</td>
+                        <td style="padding: 8px 4px; text-align: right;">${leg.order_type} @ ${parseFloat(leg.price) > 0 ? '₹' + leg.price : 'MKT'}</td>
+                        <td style="padding: 8px 4px;">${statusBadge}</td>
+                        <td style="padding: 8px 4px; text-align: center;">
+                            <button class="watchlist-action-btn buy" style="padding: 2px 6px; font-size: 9px; border-color: rgba(245, 158, 11, 0.3); color: var(--accent-gold); margin-right: 4px;" onclick="editBasketLeg('${leg.id}')">Edit</button>
+                            <button class="watchlist-action-btn remove" style="padding: 2px 6px; font-size: 9px;" onclick="removeBasketLeg('${leg.id}')">✕</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function calculateEstimatedMargin() {
+            let total = 0;
+            basketOrders.forEach(leg => {
+                const qty = parseFloat(leg.quantity) || 0;
+                let price = parseFloat(leg.price) || 0;
+
+                if (price <= 0) {
+                    const cacheKey = `${leg.exchange_segment}|${leg.token}`;
+                    const cacheData = priceCache[cacheKey];
+                    if (cacheData && cacheData.ltp) {
+                        price = parseFloat(cacheData.ltp) || 0;
+                    }
+                }
+
+                total += qty * price;
+            });
+
+            const marginElement = document.getElementById('basket_estimated_margin');
+            if (marginElement) {
+                marginElement.textContent = '₹ ' + total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+
+        async function submitBasket() {
+            if (basketOrders.length === 0) {
+                showOrderAlert('Basket is empty.');
+                return;
+            }
+
+            hideOrderAlert();
+            const submitBtn = document.getElementById('basket-submit-btn');
+            const clearBtn = document.getElementById('basket-clear-btn');
+            const spinner = document.getElementById('basket-spinner');
+
+            submitBtn.disabled = true;
+            clearBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            try {
+                basketOrders.forEach(leg => {
+                    leg.status = 'Pending';
+                    leg.order_id = null;
+                    leg.error = null;
+                });
+                renderBasketLegs();
+
+                const response = await fetch('/api/place_basket_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orders: basketOrders })
+                });
+
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Failed to submit basket.');
+                }
+
+                const results = data.results;
+                results.forEach((res, index) => {
+                    if (index < basketOrders.length) {
+                        const leg = basketOrders[index];
+                        if (res.success) {
+                            leg.status = 'Success';
+                            let oId = 'Success';
+                            if (res.response && typeof res.response === 'object') {
+                                oId = res.response.orderId || res.response.nOrderId || JSON.stringify(res.response);
+                            } else {
+                                oId = res.response;
+                            }
+                            leg.order_id = oId;
+                        } else {
+                            leg.status = 'Failed';
+                            leg.error = res.error;
+                        }
+                    }
+                });
+
+                renderBasketLegs();
+                calculateEstimatedMargin();
+                showOrderAlert('Basket order placement completed!', 'success');
+
+            } catch (err) {
+                showOrderAlert(err.message || 'An error occurred while submitting basket.');
+            } finally {
+                submitBtn.disabled = false;
+                clearBtn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        function quickOrder(txType, symbol, segment) {
+            switchDashTab('order');
+            setTransactionType(txType);
+            document.getElementById('order_symbol').value = symbol;
+            document.getElementById('order_segment').value = segment;
+
+            // Find matching watchlist item to get token and update active depth
+            const match = watchlist.find(item => item.trading_symbol === symbol && item.segment === segment);
+            if (match) {
+                changeActiveDepthSymbol(match.token, match.segment);
+            } else {
+                changeActiveDepthSymbol(null, null);
+            }
+        }
+
+        // Local WebSocket Broadcast handler
+        let priceCache = {};
+
+        function initLocalWebSocket() {
+            if (localWs) {
+                try { localWs.close(); } catch (e) { }
+            }
+
+            console.log('Connecting to local price broadcast WebSocket...');
+            localWs = new WebSocket('ws://' + window.location.hostname + ':5001');
+
+            localWs.onmessage = function (event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.type === 'initial_prices') {
+                        priceCache = { ...priceCache, ...message.prices };
+                        for (const [key, data] of Object.entries(message.prices)) {
+                            updateWatchlistTick(key, data);
+                            updateActiveDepthTick(key, data);
+                        }
+                        calculateEstimatedMargin();
+                    } else if (message.type === 'tick') {
+                        priceCache[message.key] = message.data;
+                        updateWatchlistTick(message.key, message.data);
+                        updateActiveDepthTick(message.key, message.data);
+                        calculateEstimatedMargin();
+                    }
+                } catch (err) {
+                    console.error('Error handling tick message:', err);
+                }
+            };
+
+            localWs.onclose = function () {
+                console.log('Local price WebSocket closed. Reconnecting in 3s...');
+                setTimeout(initLocalWebSocket, 3000);
+            };
+
+            localWs.onerror = function (err) {
+                console.error('Local price WebSocket error:', err);
+            };
+        }
+
+        function updateWatchlistTick(key, data) {
+            const parts = key.split('|');
+            if (parts.length !== 2) return;
+            const segment = parts[0];
+            const token = parts[1];
+
+            const ltpCell = document.getElementById(`ltp-${segment}-${token}`);
+            const changeCell = document.getElementById(`change-${segment}-${token}`);
+            const row = document.getElementById(`row-${segment}-${token}`);
+
+            if (!ltpCell) return;
+
+            const oldText = ltpCell.textContent.replace(/[^\d.-]/g, '');
+            const oldLtp = oldText ? parseFloat(oldText) : 0;
+            const newLtp = parseFloat(data.ltp);
+
+            // Update LTP
+            ltpCell.textContent = '₹ ' + newLtp.toFixed(2);
+
+            // Flashing animation on tick changes
+            if (oldLtp > 0 && newLtp !== oldLtp) {
+                const flashClass = newLtp > oldLtp ? 'flash-up' : 'flash-down';
+                row.classList.add(flashClass);
+                setTimeout(() => row.classList.remove(flashClass), 150);
+            }
+
+            // Update Net Change & Change Percent
+            const changeVal = parseFloat(data.change);
+            const changePercent = parseFloat(data.change_percent);
+
+            changeCell.textContent = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`;
+
+            if (changeVal >= 0) {
+                changeCell.className = 'price-up';
+                ltpCell.style.color = 'var(--success)';
+            } else {
+                changeCell.className = 'price-down';
+                ltpCell.style.color = 'var(--error)';
+            }
         }
 
         // Transaction Type (B/S) switcher
@@ -1052,16 +2257,26 @@
             const submitBtn = document.getElementById('order-submit-btn');
             const btnText = document.getElementById('order-btn-text');
 
-            if (txType === 'B') {
-                buyBtn.classList.add('active');
-                sellBtn.classList.remove('active');
-                submitBtn.className = 'btn-order-submit buy';
-                btnText.textContent = 'PLACE BUY ORDER';
+            if (selectedCategory === 'single') {
+                if (txType === 'B') {
+                    buyBtn.classList.add('active');
+                    sellBtn.classList.remove('active');
+                    submitBtn.className = 'btn-order-submit buy';
+                    btnText.textContent = 'PLACE BUY ORDER';
+                } else {
+                    buyBtn.classList.remove('active');
+                    sellBtn.classList.add('active');
+                    submitBtn.className = 'btn-order-submit sell';
+                    btnText.textContent = 'PLACE SELL ORDER';
+                }
             } else {
-                buyBtn.classList.remove('active');
-                sellBtn.classList.add('active');
-                submitBtn.className = 'btn-order-submit sell';
-                btnText.textContent = 'PLACE SELL ORDER';
+                if (txType === 'B') {
+                    buyBtn.classList.add('active');
+                    sellBtn.classList.remove('active');
+                } else {
+                    buyBtn.classList.remove('active');
+                    sellBtn.classList.add('active');
+                }
             }
         }
 
@@ -1091,7 +2306,7 @@
         function showOrderAlert(message, type = 'error') {
             const alertBox = document.getElementById('order-alert-box');
             const alertMessage = document.getElementById('order-alert-message');
-            
+
             alertBox.className = `alert alert-${type}`;
             alertMessage.textContent = message;
             alertBox.style.display = 'flex';
@@ -1156,7 +2371,7 @@
 
                 const orderRes = data.response;
                 console.log('Order Placement Successful:', orderRes);
-                
+
                 let orderId = 'Unknown ID';
                 if (orderRes && typeof orderRes === 'object') {
                     orderId = orderRes.orderId || orderRes.nOrderId || JSON.stringify(orderRes);
@@ -1176,4 +2391,5 @@
         }
     </script>
 </body>
+
 </html>
