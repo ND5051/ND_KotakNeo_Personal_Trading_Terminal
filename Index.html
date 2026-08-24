@@ -840,6 +840,41 @@
             color: var(--text-primary);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
+
+        /* Option Chain Table sticky headers and style fixes */
+        #dash-panel-option-chain .table-container {
+            max-height: 650px;
+            overflow-y: auto;
+        }
+
+        #dash-panel-option-chain table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #dash-panel-option-chain table thead th {
+            background: #0b0f19 !important; /* Matches main card background */
+        }
+
+        select option {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+
+        /* Option Chain Shading */
+        .itm-cell {
+            background-color: rgba(218, 165, 32, 0.05) !important;
+        }
+        .otm-cell {
+            background-color: transparent !important;
+        }
+        .atm-strike-cell {
+            box-shadow: inset 0 0 0 2px var(--accent-gold) !important;
+            background-color: rgba(218, 165, 32, 0.18) !important;
+            color: #ffffff !important;
+            font-weight: 800 !important;
+        }
     </style>
 </head>
 
@@ -958,10 +993,13 @@
                 <div class="brand-logo" style="margin-bottom: 0; font-size: 20px;">KOTAK<span style="color: var(--accent-gold);">NEO</span></div>
                 
                 <!-- Tab Buttons -->
-                <div class="dash-tabs" style="margin-bottom: 0; max-width: 450px; flex: 1; margin: 0 40px; border: none; background: rgba(0,0,0,0.25);">
+                <div class="dash-tabs" style="margin-bottom: 0; max-width: 800px; flex: 1; margin: 0 40px; border: none; background: rgba(0,0,0,0.25);">
                     <button class="dash-tab active" id="tab-btn-home" onclick="switchDashTab('home')">Home</button>
                     <button class="dash-tab" id="tab-btn-watchlist" onclick="switchDashTab('watchlist')">Watchlist</button>
                     <button class="dash-tab" id="tab-btn-order" onclick="switchDashTab('order')">Place Order</button>
+                    <button class="dash-tab" id="tab-btn-orders-trades" onclick="switchDashTab('orders_trades')">Orders & Trades</button>
+                    <button class="dash-tab" id="tab-btn-portfolio" onclick="switchDashTab('portfolio')">Portfolio</button>
+                    <button class="dash-tab" id="tab-btn-option-chain" onclick="switchDashTab('option_chain')">Option Chain</button>
                 </div>
                 
                 <div style="display: flex; align-items: center; gap: 16px;">
@@ -1209,6 +1247,299 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ORDERS & TRADES TAB PANEL -->
+                <div class="dash-content-panel" id="dash-panel-orders-trades">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="dashboard-title" style="margin: 0; font-size: 20px;">Orders & Trades</h2>
+                        <button class="watchlist-action-btn" onclick="refreshOrdersTrades()" style="padding: 6px 12px; font-size: 13px;">Refresh Book</button>
+                    </div>
+
+                    <!-- Toggle Inner Tabs for Orders vs Trades -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                        <button id="subtab-btn-orders" class="watchlist-action-btn" onclick="switchOrdersSubTab('orders')" style="background: var(--accent-gold); color: #000; font-weight: bold; padding: 6px 16px;">Order Book</button>
+                        <button id="subtab-btn-trades" class="watchlist-action-btn" onclick="switchOrdersSubTab('trades')" style="background: rgba(255,255,255,0.08); padding: 6px 16px;">Trade Book</button>
+                    </div>
+
+                    <!-- Order Book Section -->
+                    <div id="subpanel-orders">
+                        <div class="table-container" style="overflow-x: auto; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px;">
+                            <table class="watchlist-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Time</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Order ID</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Symbol</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Type</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Product</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Action</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Qty</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Price</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Trigger</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Status</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); text-align: center; font-size: 13px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders_tbody">
+                                    <tr>
+                                        <td colspan="11" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No orders found.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Trade Book Section -->
+                    <div id="subpanel-trades" style="display: none;">
+                        <div class="table-container" style="overflow-x: auto; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px;">
+                            <table class="watchlist-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Time</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Trade ID</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Order ID</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Symbol</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Type</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Qty</th>
+                                        <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trades_tbody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No trades found.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PORTFOLIO TAB PANEL -->
+                <div class="dash-content-panel" id="dash-panel-portfolio">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="dashboard-title" style="margin: 0; font-size: 20px;">Portfolio Holdings & Positions</h2>
+                        <button class="watchlist-action-btn" onclick="refreshPortfolio()" style="padding: 6px 12px; font-size: 13px;">Refresh Portfolio</button>
+                    </div>
+
+                    <!-- Portfolio Summary Cards -->
+                    <div class="info-grid" style="grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
+                        <div class="info-item">
+                            <div class="info-label">Positions P&L (Live MTM)</div>
+                            <div class="info-value" id="portfolio-total-pnl" style="font-weight: bold; color: var(--text-primary);">₹0.00</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Holdings Value (Invested)</div>
+                            <div class="info-value" id="portfolio-holdings-invested" style="font-weight: bold;">₹0.00</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Holdings P&L</div>
+                            <div class="info-value" id="portfolio-holdings-pnl" style="font-weight: bold;">₹0.00</div>
+                        </div>
+                    </div>
+
+                    <!-- Positions Section -->
+                    <h3 style="font-size: 15px; margin: 24px 0 12px 0; color: var(--accent-gold); font-weight: 600;">Open Positions</h3>
+                    <div class="table-container" style="overflow-x: auto; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; margin-bottom: 24px;">
+                        <table class="watchlist-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Symbol</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Product</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Net Qty</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Avg Buy Price</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Avg Sell Price</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">LTP</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Net P&L (MTM)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positions_tbody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No open positions found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Holdings Section -->
+                    <h3 style="font-size: 15px; margin: 12px 0 12px 0; color: var(--accent-gold); font-weight: 600;">Portfolio Holdings</h3>
+                    <div class="table-container" style="overflow-x: auto; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px;">
+                        <table class="watchlist-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); font-size: 13px;">Symbol</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Qty</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Avg Price</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">LTP</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Invested Value</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Current Value</th>
+                                    <th style="padding: 12px 8px; color: var(--text-secondary); text-align: right; font-size: 13px;">Net P&L</th>
+                                </tr>
+                            </thead>
+                            <tbody id="holdings_tbody">
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No portfolio holdings found.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- OPTION CHAIN TAB PANEL -->
+                <div class="dash-content-panel" id="dash-panel-option-chain">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 class="dashboard-title" style="margin: 0; font-size: 20px;">Option Chain</h2>
+                        <div style="display: flex; align-items: center; gap: 12px; position: relative;">
+                            <!-- Column settings button -->
+                            <button class="watchlist-action-btn" onclick="toggleColumnSettings()" style="padding: 6px 12px; font-size: 13px; background: rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px;">
+                                ⚙ Columns
+                            </button>
+                            <button class="watchlist-action-btn" onclick="refreshOptionChain()" style="padding: 6px 12px; font-size: 13px; background: var(--accent-gold); color: #000; font-weight: bold;">Refresh Chain</button>
+                            
+                            <!-- Column Selection Settings Dropdown (Popover) -->
+                            <div id="column-settings-dropdown" style="display: none; position: absolute; top: 38px; right: 0; background: #0f172a; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px; width: 220px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); z-index: 100;">
+                                <h4 style="margin: 0 0 10px 0; font-size: 13px; color: var(--accent-gold); border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 4px;">Choose Columns</h4>
+                                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-vol" checked onchange="toggleChainColumn('vol')"> Volume
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-oi" checked onchange="toggleChainColumn('oi')"> Open Interest (OI)
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-bidqty" checked onchange="toggleChainColumn('bidqty')"> Bid Qty
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-bidprice" checked onchange="toggleChainColumn('bidprice')"> Bid Price
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-askprice" checked onchange="toggleChainColumn('askprice')"> Ask Price
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-askqty" checked onchange="toggleChainColumn('askqty')"> Ask Qty
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="col-ltp" checked onchange="toggleChainColumn('ltp')"> LTP
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Options Filter Row -->
+                    <div style="display: flex; gap: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Symbol</label>
+                            <div style="display: flex; gap: 8px;">
+                                <select id="chain_symbol_select" onchange="refreshOptionChain()" class="watchlist-search-input" style="padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; width: 180px;">
+                                    <option value="NIFTY">NIFTY</option>
+                                    <option value="BANKNIFTY">BANKNIFTY</option>
+                                    <option value="FINNIFTY">FINNIFTY</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Expiry Date</label>
+                            <select id="chain_expiry_select" onchange="renderOptionChainTable()" class="watchlist-search-input" style="padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; width: 150px;">
+                                <option value="">No Expiries</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">Visible Strikes</label>
+                            <select id="chain_strikes_count" onchange="renderOptionChainTable()" class="watchlist-search-input" style="padding: 6px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; width: 100px;">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="30">30</option>
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1; min-width: 150px; display: flex; justify-content: flex-end; align-items: center;">
+                            <div style="background: rgba(218, 165, 32, 0.1); border: 1px solid rgba(218, 165, 32, 0.2); padding: 8px 16px; border-radius: 8px; font-size: 13px;">
+                                <span style="color: var(--text-secondary);">Spot Price:</span>
+                                <strong id="chain-spot-price" style="color: var(--accent-gold); font-size: 15px; margin-left: 4px;">₹0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Double-Sided Option Chain Table -->
+                    <div class="table-container" style="overflow-x: auto; background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px;">
+                        <table class="watchlist-table" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+                            <thead>
+                                <!-- Top header row grouping Calls & Puts -->
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.02);">
+                                    <th colspan="7" style="padding: 8px; border-right: 1px solid rgba(255, 255, 255, 0.08); color: var(--success); font-weight: bold; font-size: 14px;">CALLS</th>
+                                    <th style="padding: 8px; font-weight: bold; font-size: 14px;">STRIKE</th>
+                                    <th colspan="7" style="padding: 8px; border-left: 1px solid rgba(255, 255, 255, 0.08); color: var(--error); font-weight: bold; font-size: 14px;">PUTS</th>
+                                </tr>
+                                <!-- Column Headers row -->
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 12px; color: var(--text-secondary);">
+                                    <!-- Calls columns -->
+                                    <th class="col-vol" style="padding: 8px 4px;">Volume</th>
+                                    <th class="col-oi" style="padding: 8px 4px;">OI</th>
+                                    <th class="col-bidqty" style="padding: 8px 4px;">Bid Qty</th>
+                                    <th class="col-bidprice" style="padding: 8px 4px;">Bid Price</th>
+                                    <th class="col-askprice" style="padding: 8px 4px;">Ask Price</th>
+                                    <th class="col-askqty" style="padding: 8px 4px;">Ask Qty</th>
+                                    <th class="col-ltp" style="padding: 8px 4px; border-right: 1px solid rgba(255,255,255,0.08);">LTP</th>
+                                    
+                                    <!-- Center Strike -->
+                                    <th style="padding: 8px 4px; font-weight: bold; color: #fff;">Strike Price</th>
+                                    
+                                    <!-- Puts columns -->
+                                    <th class="col-ltp" style="padding: 8px 4px; border-left: 1px solid rgba(255,255,255,0.08);">LTP</th>
+                                    <th class="col-askqty" style="padding: 8px 4px;">Ask Qty</th>
+                                    <th class="col-askprice" style="padding: 8px 4px;">Ask Price</th>
+                                    <th class="col-bidprice" style="padding: 8px 4px;">Bid Price</th>
+                                    <th class="col-bidqty" style="padding: 8px 4px;">Bid Qty</th>
+                                    <th class="col-oi" style="padding: 8px 4px;">OI</th>
+                                    <th class="col-vol" style="padding: 8px 4px;">Volume</th>
+                                </tr>
+                            </thead>
+                            <tbody id="option_chain_tbody">
+                                <tr>
+                                    <td colspan="15" style="text-align: center; padding: 32px 0; color: var(--text-secondary);">Select a symbol and expiry to load option chain.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Modify Order Modal -->
+        <div id="modify-order-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="order-ticket-container" style="width: 400px; max-width: 90%; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); margin: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 16px; color: var(--accent-gold); margin: 0;">Modify Order</h3>
+                    <button onclick="closeModifyModal()" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 18px;">×</button>
+                </div>
+                
+                <div id="modify-order-info" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
+                    <!-- Info inserted via JS -->
+                </div>
+                
+                <input type="hidden" id="modify-order-id">
+                <input type="hidden" id="modify-order-type">
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Quantity</label>
+                        <input type="number" id="modify-qty" class="watchlist-search-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;" min="1">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Price</label>
+                        <input type="number" id="modify-price" class="watchlist-search-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;" step="0.05">
+                    </div>
+                    <div id="modify-trigger-price-container" style="display: none;">
+                        <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Trigger Price</label>
+                        <input type="number" id="modify-trigger-price" class="watchlist-search-input" style="width: 100%; box-sizing: border-box; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff;" step="0.05">
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 12px;">
+                        <button class="watchlist-action-btn remove" onclick="closeModifyModal()" style="flex: 1; padding: 10px;">Cancel</button>
+                        <button class="watchlist-action-btn" onclick="submitOrderModification()" style="flex: 1; padding: 10px; background: var(--accent-gold); color: #000; font-weight: bold;">Submit Changes</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1257,11 +1588,15 @@
                 secretGroup.style.display = 'none';
                 codeBtn.classList.add('active');
                 secretBtn.classList.remove('active');
+                const codeInput = document.getElementById('totp_code');
+                if (codeInput) codeInput.focus();
             } else {
                 codeGroup.style.display = 'none';
                 secretGroup.style.display = 'block';
                 codeBtn.classList.remove('active');
                 secretBtn.classList.add('active');
+                const secretInput = document.getElementById('totp_secret');
+                if (secretInput) secretInput.focus();
             }
         }
 
@@ -1309,6 +1644,21 @@
             return true;
         }
 
+        function focusFirstInputInStep(stepNum) {
+            if (stepNum === 2) {
+                const firstMpin = document.querySelector('.mpin-box');
+                if (firstMpin) firstMpin.focus();
+            } else if (stepNum === 3) {
+                if (totpMode === 'code') {
+                    const codeInput = document.getElementById('totp_code');
+                    if (codeInput) codeInput.focus();
+                } else {
+                    const secretInput = document.getElementById('totp_secret');
+                    if (secretInput) secretInput.focus();
+                }
+            }
+        }
+
         function nextStep(stepNum) {
             if (!validateStep(currentStep)) return;
 
@@ -1319,6 +1669,9 @@
 
             document.getElementById(`panel-${currentStep}`).classList.add('active');
             document.getElementById(`dot-${currentStep}`).classList.add('active');
+            
+            // Auto focus
+            focusFirstInputInStep(currentStep);
         }
 
         function prevStep(stepNum) {
@@ -1330,6 +1683,9 @@
             currentStep = stepNum;
 
             document.getElementById(`panel-${currentStep}`).classList.add('active');
+            
+            // Auto focus
+            focusFirstInputInStep(currentStep);
         }
 
         async function performLogin() {
@@ -1459,18 +1815,30 @@
             const homePanel = document.getElementById('dash-panel-home');
             const watchlistPanel = document.getElementById('dash-panel-watchlist');
             const orderPanel = document.getElementById('dash-panel-order');
+            const ordersTradesPanel = document.getElementById('dash-panel-orders-trades');
+            const portfolioPanel = document.getElementById('dash-panel-portfolio');
+            const optionChainPanel = document.getElementById('dash-panel-option-chain');
 
             const homeBtn = document.getElementById('tab-btn-home');
             const watchlistBtn = document.getElementById('tab-btn-watchlist');
             const orderBtn = document.getElementById('tab-btn-order');
+            const ordersTradesBtn = document.getElementById('tab-btn-orders-trades');
+            const portfolioBtn = document.getElementById('tab-btn-portfolio');
+            const optionChainBtn = document.getElementById('tab-btn-option-chain');
 
             homePanel.classList.remove('active');
             watchlistPanel.classList.remove('active');
             orderPanel.classList.remove('active');
+            ordersTradesPanel.classList.remove('active');
+            portfolioPanel.classList.remove('active');
+            if (optionChainPanel) optionChainPanel.classList.remove('active');
 
             homeBtn.classList.remove('active');
             watchlistBtn.classList.remove('active');
             orderBtn.classList.remove('active');
+            ordersTradesBtn.classList.remove('active');
+            portfolioBtn.classList.remove('active');
+            if (optionChainBtn) optionChainBtn.classList.remove('active');
 
             if (tabName === 'home') {
                 homePanel.classList.add('active');
@@ -1479,9 +1847,21 @@
                 watchlistPanel.classList.add('active');
                 watchlistBtn.classList.add('active');
                 loadWatchlist();
-            } else {
+            } else if (tabName === 'order') {
                 orderPanel.classList.add('active');
                 orderBtn.classList.add('active');
+            } else if (tabName === 'orders_trades') {
+                ordersTradesPanel.classList.add('active');
+                ordersTradesBtn.classList.add('active');
+                refreshOrdersTrades();
+            } else if (tabName === 'portfolio') {
+                portfolioPanel.classList.add('active');
+                portfolioBtn.classList.add('active');
+                refreshPortfolio();
+            } else if (tabName === 'option_chain') {
+                if (optionChainPanel) optionChainPanel.classList.add('active');
+                if (optionChainBtn) optionChainBtn.classList.add('active');
+                refreshOptionChain();
             }
             hideOrderAlert();
         }
@@ -2184,13 +2564,19 @@
                         for (const [key, data] of Object.entries(message.prices)) {
                             updateWatchlistTick(key, data);
                             updateActiveDepthTick(key, data);
+                            updateLiveOptionChain(key, data);
                         }
                         calculateEstimatedMargin();
+                        updateLiveMTM();
+                        updateLiveHoldings();
                     } else if (message.type === 'tick') {
                         priceCache[message.key] = message.data;
                         updateWatchlistTick(message.key, message.data);
                         updateActiveDepthTick(message.key, message.data);
+                        updateLiveOptionChain(message.key, message.data);
                         calculateEstimatedMargin();
+                        updateLiveMTM();
+                        updateLiveHoldings();
                     }
                 } catch (err) {
                     console.error('Error handling tick message:', err);
@@ -2387,6 +2773,867 @@
                 submitBtn.disabled = false;
                 spinner.style.display = 'none';
                 btnText.textContent = originalText;
+            }
+        }
+
+        // ==========================================
+        // Orders & Trades Logic
+        // ==========================================
+        let ordersList = [];
+        let tradesList = [];
+        let activeOrdersSubTab = 'orders';
+
+        function switchOrdersSubTab(subTab) {
+            activeOrdersSubTab = subTab;
+            const ordersBtn = document.getElementById('subtab-btn-orders');
+            const tradesBtn = document.getElementById('subtab-btn-trades');
+            const ordersPanel = document.getElementById('subpanel-orders');
+            const tradesPanel = document.getElementById('subpanel-trades');
+
+            if (subTab === 'orders') {
+                ordersBtn.style.background = 'var(--accent-gold)';
+                ordersBtn.style.color = '#000';
+                ordersBtn.style.fontWeight = 'bold';
+                tradesBtn.style.background = 'rgba(255,255,255,0.08)';
+                tradesBtn.style.color = '#fff';
+                tradesBtn.style.fontWeight = 'normal';
+                ordersPanel.style.display = 'block';
+                tradesPanel.style.display = 'none';
+            } else {
+                tradesBtn.style.background = 'var(--accent-gold)';
+                tradesBtn.style.color = '#000';
+                tradesBtn.style.fontWeight = 'bold';
+                ordersBtn.style.background = 'rgba(255,255,255,0.08)';
+                ordersBtn.style.color = '#fff';
+                ordersBtn.style.fontWeight = 'normal';
+                ordersPanel.style.display = 'none';
+                tradesPanel.style.display = 'block';
+            }
+        }
+
+        async function refreshOrdersTrades() {
+            try {
+                // Fetch Orders
+                const ordersRes = await fetch('/api/orders');
+                const ordersData = await ordersRes.json();
+                if (ordersRes.ok && ordersData.success) {
+                    ordersList = ordersData.orders.data || ordersData.orders || [];
+                    displayOrders();
+                } else {
+                    console.error('Failed to fetch orders:', ordersData.error);
+                }
+
+                // Fetch Trades
+                const tradesRes = await fetch('/api/trades');
+                const tradesData = await tradesRes.json();
+                if (tradesRes.ok && tradesData.success) {
+                    tradesList = tradesData.trades.data || tradesData.trades || [];
+                    displayTrades();
+                } else {
+                    console.error('Failed to fetch trades:', tradesData.error);
+                }
+            } catch (err) {
+                console.error('Error refreshing orders/trades:', err);
+            }
+        }
+
+        function displayOrders() {
+            const tbody = document.getElementById('orders_tbody');
+            if (!ordersList || ordersList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No orders found.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            ordersList.forEach(order => {
+                const orderId = order.nOrdNo || order.orderId || '-';
+                const symbol = order.trdSym || order.tradingSymbol || '-';
+                const type = order.ordType || order.orderType || '-';
+                const product = order.prod || order.product || '-';
+                const action = order.trnsTyp || order.transactionType || '-';
+                const qty = order.qty || order.quantity || '0';
+                const price = order.prc || order.price || '0';
+                const triggerPrice = order.trgPrc || order.triggerPrice || '0';
+                const status = order.ordSt || order.orderStatus || '-';
+                const time = order.ordDtTm || order.orderDateTime || '-';
+
+                // Check if modifiable/cancellable
+                const isActive = ['open', 'pending', 'modify pending', 'trigger pending', 'sl trigger pending'].includes(status.toLowerCase());
+                
+                let actionButtons = '';
+                if (isActive) {
+                    actionButtons = `
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <button class="watchlist-action-btn" onclick="openModifyModal('${orderId}', '${symbol}', '${qty}', '${price}', '${type}', '${triggerPrice}')" style="padding: 4px 8px; font-size: 11px; background: rgba(218, 165, 32, 0.2); color: var(--accent-gold);">Modify</button>
+                            <button class="watchlist-action-btn remove" onclick="cancelOrder('${orderId}')" style="padding: 4px 8px; font-size: 11px;">Cancel</button>
+                        </div>
+                    `;
+                } else {
+                    actionButtons = `<span style="color: var(--text-secondary); font-size: 11px;">Completed</span>`;
+                }
+
+                const statusColor = ['rejected', 'cancelled', 'failed'].includes(status.toLowerCase()) ? 'var(--error)' : (status.toLowerCase() === 'complete' || status.toLowerCase() === 'traded' ? 'var(--success)' : 'var(--accent-gold)');
+                const actionColor = action.toLowerCase() === 'buy' ? 'var(--success)' : 'var(--error)';
+
+                html += `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;">
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${time}</td>
+                        <td style="padding: 10px 8px; font-weight: 500;">${orderId}</td>
+                        <td style="padding: 10px 8px; font-weight: 600; color: #fff;">${symbol}</td>
+                        <td style="padding: 10px 8px;">${type}</td>
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${product}</td>
+                        <td style="padding: 10px 8px; font-weight: bold; color: ${actionColor};">${action}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-weight: 500;">${qty}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-weight: 500;">₹${parseFloat(price).toFixed(2)}</td>
+                        <td style="padding: 10px 8px; text-align: right; color: var(--text-secondary);">₹${parseFloat(triggerPrice).toFixed(2)}</td>
+                        <td style="padding: 10px 8px; font-weight: 600; color: ${statusColor};">${status}</td>
+                        <td style="padding: 10px 8px; text-align: center;">${actionButtons}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function displayTrades() {
+            const tbody = document.getElementById('trades_tbody');
+            if (!tradesList || tradesList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No trades found.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            tradesList.forEach(trade => {
+                const tradeId = trade.flTrdNo || trade.tradeId || '-';
+                const orderId = trade.nOrdNo || trade.orderId || '-';
+                const symbol = trade.trdSym || trade.tradingSymbol || '-';
+                const action = trade.trnsTyp || trade.transactionType || '-';
+                const qty = trade.flQty || trade.filledQuantity || '0';
+                const price = trade.flPrc || trade.filledPrice || '0';
+                const time = trade.flDtTm || trade.tradeDateTime || '-';
+
+                const actionColor = action.toLowerCase() === 'buy' ? 'var(--success)' : 'var(--error)';
+
+                html += `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;">
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${time}</td>
+                        <td style="padding: 10px 8px; font-weight: 500;">${tradeId}</td>
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${orderId}</td>
+                        <td style="padding: 10px 8px; font-weight: 600; color: #fff;">${symbol}</td>
+                        <td style="padding: 10px 8px; font-weight: bold; color: ${actionColor};">${action}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-weight: 500;">${qty}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-weight: 500;">₹${parseFloat(price).toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm(`Are you sure you want to cancel order ${orderId}?`)) return;
+            try {
+                const response = await fetch('/api/cancel_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: orderId })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert('Order cancelled successfully.');
+                    refreshOrdersTrades();
+                } else {
+                    alert('Cancel failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error sending cancel request.');
+            }
+        }
+
+        function openModifyModal(orderId, symbol, qty, price, type, triggerPrice) {
+            document.getElementById('modify-order-id').value = orderId;
+            document.getElementById('modify-qty').value = qty;
+            document.getElementById('modify-price').value = price;
+            document.getElementById('modify-order-type').value = type;
+
+            document.getElementById('modify-order-info').innerHTML = `
+                <strong>Order ID:</strong> ${orderId}<br>
+                <strong>Symbol:</strong> ${symbol}<br>
+                <strong>Type:</strong> ${type}
+            `;
+
+            const triggerContainer = document.getElementById('modify-trigger-price-container');
+            if (type.includes('SL')) {
+                triggerContainer.style.display = 'block';
+                document.getElementById('modify-trigger-price').value = triggerPrice;
+            } else {
+                triggerContainer.style.display = 'none';
+            }
+
+            document.getElementById('modify-order-modal').style.display = 'flex';
+        }
+
+        function closeModifyModal() {
+            document.getElementById('modify-order-modal').style.display = 'none';
+        }
+
+        async function submitOrderModification() {
+            const orderId = document.getElementById('modify-order-id').value;
+            const qty = document.getElementById('modify-qty').value;
+            const price = document.getElementById('modify-price').value;
+            const type = document.getElementById('modify-order-type').value;
+            const triggerPrice = document.getElementById('modify-trigger-price').value;
+
+            try {
+                const response = await fetch('/api/modify_order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        quantity: qty,
+                        price: price,
+                        order_type: type,
+                        trigger_price: type.includes('SL') ? triggerPrice : '0'
+                    })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    alert('Order modified successfully.');
+                    closeModifyModal();
+                    refreshOrdersTrades();
+                } else {
+                    alert('Modification failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error sending modify request.');
+            }
+        }
+
+        // ==========================================
+        // Portfolio Holdings & Positions Logic
+        // ==========================================
+        let positionsList = [];
+        let holdingsList = [];
+
+        async function refreshPortfolio() {
+            try {
+                // Fetch Positions
+                const posRes = await fetch('/api/positions');
+                const posData = await posRes.json();
+                if (posRes.ok && posData.success) {
+                    positionsList = posData.positions.data || posData.positions || [];
+                    displayPositions();
+                    
+                    // Subscribe to live feed for positions
+                    positionsList.forEach(pos => {
+                        const token = pos.tok || pos.token || pos.scrpCd;
+                        const segment = pos.exchSeg;
+                        if (token && segment) {
+                            fetch('/api/subscribe_active_symbol', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ token: token.toString(), segment: segment })
+                            }).catch(err => console.error('Subscription error:', err));
+                        }
+                    });
+                } else {
+                    console.error('Failed to fetch positions:', posData.error);
+                }
+
+                // Fetch Holdings
+                const holdingsRes = await fetch('/api/holdings');
+                const holdingsData = await holdingsRes.json();
+                if (holdingsRes.ok && holdingsData.success) {
+                    holdingsList = holdingsData.holdings.data || holdingsData.holdings || [];
+                    displayHoldings();
+
+                    // Subscribe to live feed for holdings
+                    holdingsList.forEach(hold => {
+                        const token = hold.tok || hold.token || hold.scrpCd;
+                        const segment = hold.exchSeg;
+                        if (token && segment) {
+                            fetch('/api/subscribe_active_symbol', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ token: token.toString(), segment: segment })
+                            }).catch(err => console.error('Subscription error:', err));
+                        }
+                    });
+                } else {
+                    console.error('Failed to fetch holdings:', holdingsData.error);
+                }
+
+                // Initial MTM calculations
+                updateLiveMTM();
+                updateLiveHoldings();
+            } catch (err) {
+                console.error('Error refreshing portfolio:', err);
+            }
+        }
+
+        function displayPositions() {
+            const tbody = document.getElementById('positions_tbody');
+            if (!positionsList || positionsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No open positions found.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            positionsList.forEach((pos, idx) => {
+                const symbol = pos.trdSym || pos.tradingSymbol || '-';
+                const product = pos.prod || pos.product || '-';
+                const netQty = parseFloat(pos.netQty || pos.netQuantity || '0');
+                const avgBuy = parseFloat(pos.buyAvgPrc || pos.buyAvgPrice || '0');
+                const avgSell = parseFloat(pos.sellAvgPrc || pos.sellAvgPrice || '0');
+                const ltp = parseFloat(pos.ltp || pos.actLtp || '0');
+                
+                // Segment and token mapping for websocket subscription
+                const token = pos.tok || pos.token || pos.scrpCd || '';
+                const segment = pos.exchSeg || '';
+                const rowId = `position-row-${idx}`;
+
+                html += `
+                    <tr id="${rowId}" data-token="${token}" data-segment="${segment}" data-netqty="${netQty}" data-avgbuy="${avgBuy}" data-avgsell="${avgSell}" data-apiltp="${ltp}" style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;">
+                        <td style="padding: 10px 8px; font-weight: 600; color: #fff;">${symbol}</td>
+                        <td style="padding: 10px 8px; color: var(--text-secondary);">${product}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-weight: bold; color: ${netQty >= 0 ? 'var(--success)' : 'var(--error)'};">${netQty}</td>
+                        <td style="padding: 10px 8px; text-align: right;">₹${avgBuy.toFixed(2)}</td>
+                        <td style="padding: 10px 8px; text-align: right;">₹${avgSell.toFixed(2)}</td>
+                        <td class="pos-ltp" style="padding: 10px 8px; text-align: right; font-weight: 500;">₹${ltp.toFixed(2)}</td>
+                        <td class="pos-pnl" style="padding: 10px 8px; text-align: right; font-weight: bold;">₹0.00</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            updateLiveMTM();
+        }
+
+        function displayHoldings() {
+            const tbody = document.getElementById('holdings_tbody');
+            if (!holdingsList || holdingsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No portfolio holdings found.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            holdingsList.forEach((holding, idx) => {
+                const symbol = holding.trdSym || holding.tradingSymbol || '-';
+                const qty = parseFloat(holding.qty || holding.quantity || '0');
+                const avgPrice = parseFloat(holding.avgPrc || holding.avgPrice || '0');
+                const ltp = parseFloat(holding.ltp || holding.actLtp || '0');
+                const invested = qty * avgPrice;
+                const currentVal = qty * ltp;
+                const pnl = currentVal - invested;
+
+                const token = holding.tok || holding.token || holding.scrpCd || '';
+                const segment = holding.exchSeg || '';
+                const rowId = `holding-row-${idx}`;
+
+                html += `
+                    <tr id="${rowId}" data-token="${token}" data-segment="${segment}" data-qty="${qty}" data-avgprice="${avgPrice}" data-apiltp="${ltp}" style="border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px;">
+                        <td style="padding: 10px 8px; font-weight: 600; color: #fff;">${symbol}</td>
+                        <td style="padding: 10px 8px; text-align: right; font-weight: 500;">${qty}</td>
+                        <td style="padding: 10px 8px; text-align: right;">₹${avgPrice.toFixed(2)}</td>
+                        <td class="hold-ltp" style="padding: 10px 8px; text-align: right; font-weight: 500;">₹${ltp.toFixed(2)}</td>
+                        <td style="padding: 10px 8px; text-align: right; color: var(--text-secondary);">₹${invested.toFixed(2)}</td>
+                        <td class="hold-currentval" style="padding: 10px 8px; text-align: right; font-weight: 500;">₹${currentVal.toFixed(2)}</td>
+                        <td class="hold-pnl" style="padding: 10px 8px; text-align: right; font-weight: bold; color: ${pnl >= 0 ? 'var(--success)' : 'var(--error)'};">₹${pnl.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            updateLiveHoldings();
+        }
+
+        function updateLiveMTM() {
+            let totalMTM = 0;
+            const rows = document.querySelectorAll('[id^="position-row-"]');
+            rows.forEach(row => {
+                const token = row.getAttribute('data-token');
+                const segment = row.getAttribute('data-segment');
+                const netQty = parseFloat(row.getAttribute('data-netqty'));
+                const avgBuy = parseFloat(row.getAttribute('data-avgbuy'));
+                const avgSell = parseFloat(row.getAttribute('data-avgsell'));
+                const apiLtp = parseFloat(row.getAttribute('data-apiltp'));
+
+                const wsKey = `${segment}|${token}`;
+                let ltp = apiLtp;
+                if (priceCache[wsKey] && priceCache[wsKey].ltp) {
+                    ltp = parseFloat(priceCache[wsKey].ltp);
+                }
+
+                // Calculate P&L:
+                // netQty > 0: (LTP - Avg Buy Price) * netQty
+                // netQty < 0: (Avg Sell Price - LTP) * |netQty|
+                // netQty == 0: Realized P&L (usually Sell Avg * Sell Qty - Buy Avg * Buy Qty)
+                let pnl = 0;
+                if (netQty > 0) {
+                    pnl = (ltp - avgBuy) * netQty;
+                } else if (netQty < 0) {
+                    pnl = (avgSell - ltp) * Math.abs(netQty);
+                } else {
+                    pnl = (avgSell * Math.abs(netQty)) - (avgBuy * Math.abs(netQty)); // Placeholder if already squared off
+                }
+
+                totalMTM += pnl;
+
+                const ltpCell = row.querySelector('.pos-ltp');
+                const pnlCell = row.querySelector('.pos-pnl');
+                if (ltpCell) ltpCell.textContent = `₹${ltp.toFixed(2)}`;
+                if (pnlCell) {
+                    pnlCell.textContent = `${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`;
+                    pnlCell.style.color = pnl >= 0 ? 'var(--success)' : 'var(--error)';
+                }
+            });
+
+            const totalMTMDisplay = document.getElementById('portfolio-total-pnl');
+            if (totalMTMDisplay) {
+                totalMTMDisplay.textContent = `${totalMTM >= 0 ? '+' : ''}₹${totalMTM.toFixed(2)}`;
+                totalMTMDisplay.style.color = totalMTM >= 0 ? 'var(--success)' : 'var(--error)';
+            }
+        }
+
+        function updateLiveHoldings() {
+            let totalInvested = 0;
+            let totalCurrent = 0;
+            let totalPnL = 0;
+
+            const rows = document.querySelectorAll('[id^="holding-row-"]');
+            rows.forEach(row => {
+                const token = row.getAttribute('data-token');
+                const segment = row.getAttribute('data-segment');
+                const qty = parseFloat(row.getAttribute('data-qty'));
+                const avgPrice = parseFloat(row.getAttribute('data-avgprice'));
+                const apiLtp = parseFloat(row.getAttribute('data-apiltp'));
+
+                const wsKey = `${segment}|${token}`;
+                let ltp = apiLtp;
+                if (priceCache[wsKey] && priceCache[wsKey].ltp) {
+                    ltp = parseFloat(priceCache[wsKey].ltp);
+                }
+
+                const invested = qty * avgPrice;
+                const currentVal = qty * ltp;
+                const pnl = currentVal - invested;
+
+                totalInvested += invested;
+                totalCurrent += currentVal;
+                totalPnL += pnl;
+
+                const ltpCell = row.querySelector('.hold-ltp');
+                const currentValCell = row.querySelector('.hold-currentval');
+                const pnlCell = row.querySelector('.hold-pnl');
+
+                if (ltpCell) ltpCell.textContent = `₹${ltp.toFixed(2)}`;
+                if (currentValCell) currentValCell.textContent = `₹${currentVal.toFixed(2)}`;
+                if (pnlCell) {
+                    pnlCell.textContent = `${pnl >= 0 ? '+' : ''}₹${pnl.toFixed(2)}`;
+                    pnlCell.style.color = pnl >= 0 ? 'var(--success)' : 'var(--error)';
+                }
+            });
+
+            const investedDisplay = document.getElementById('portfolio-holdings-invested');
+            const pnlDisplay = document.getElementById('portfolio-holdings-pnl');
+
+            if (investedDisplay) investedDisplay.textContent = `₹${totalInvested.toFixed(2)}`;
+            if (pnlDisplay) {
+                pnlDisplay.textContent = `${totalPnL >= 0 ? '+' : ''}₹${totalPnL.toFixed(2)}`;
+                pnlDisplay.style.color = totalPnL >= 0 ? 'var(--success)' : 'var(--error)';
+            }
+        }
+        // ==========================================
+        // Option Chain Logic
+        // ==========================================
+        let optionChainData = [];
+        let optionExpiries = [];
+        let activeOptionTokens = new Set();
+        let spotTokenKey = null;
+        let spotPrice = 0.0;
+
+        function toggleColumnSettings() {
+            const dropdown = document.getElementById('column-settings-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('column-settings-dropdown');
+            const btn = document.querySelector('[onclick="toggleColumnSettings()"]');
+            if (dropdown && dropdown.style.display === 'block' && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function toggleChainColumn(colId) {
+            const isChecked = document.getElementById(`col-${colId}`).checked;
+            const elements = document.querySelectorAll(`.col-${colId}`);
+            elements.forEach(el => {
+                el.style.display = isChecked ? '' : 'none';
+            });
+        }
+
+        function applyColumnsVisibility() {
+            const cols = ['vol', 'oi', 'bidqty', 'bidprice', 'askprice', 'askqty', 'ltp'];
+            cols.forEach(col => toggleChainColumn(col));
+        }
+
+        let fnoSymbolsLoaded = false;
+        async function loadFnoSymbols() {
+            if (fnoSymbolsLoaded) return;
+            try {
+                const select = document.getElementById('chain_symbol_select');
+                const currentVal = select.value;
+                
+                const res = await fetch('/api/fno_symbols');
+                const data = await res.json();
+                if (res.ok && data.success && data.symbols) {
+                    select.innerHTML = '';
+                    data.symbols.forEach(sym => {
+                        select.innerHTML += `<option value="${sym}">${sym}</option>`;
+                    });
+                    if (data.symbols.includes(currentVal)) {
+                        select.value = currentVal;
+                    } else if (data.symbols.length > 0) {
+                        select.value = data.symbols[0];
+                    }
+                    fnoSymbolsLoaded = true;
+                }
+            } catch (e) {
+                console.error("Error loading F&O symbols list:", e);
+            }
+        }
+
+        async function refreshOptionChain() {
+            const select = document.getElementById('chain_symbol_select');
+            
+            // Ensure F&O symbols list is loaded from server
+            if (!fnoSymbolsLoaded) {
+                await loadFnoSymbols();
+            }
+
+            let symbol = select.value;
+            if (!symbol) return;
+
+            const tbody = document.getElementById('option_chain_tbody');
+            tbody.innerHTML = `<tr><td colspan="15" style="text-align: center; padding: 32px 0; color: var(--text-secondary);">Loading option chain instruments...</td></tr>`;
+
+            try {
+                const response = await fetch(`/api/option_chain_instruments?symbol=${encodeURIComponent(symbol)}`);
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    optionChainData = data.options || [];
+                    optionExpiries = data.expiries || [];
+                    
+                    // Populate Expiries Dropdown
+                    const expirySelect = document.getElementById('chain_expiry_select');
+                    expirySelect.innerHTML = '';
+                    if (optionExpiries.length === 0) {
+                        expirySelect.innerHTML = '<option value="">No Expiries</option>';
+                    } else {
+                        optionExpiries.forEach(exp => {
+                            expirySelect.innerHTML += `<option value="${exp}">${exp}</option>`;
+                        });
+                    }
+
+                    // Setup Spot subscription
+                    if (spotTokenKey) {
+                        // Unsubscribe previous spot
+                        const parts = spotTokenKey.split('|');
+                        fetch('/api/unsubscribe_active_symbol', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: parts[1], segment: parts[0] })
+                        }).catch(e => console.error(e));
+                    }
+
+                    if (data.spot && data.spot.token) {
+                        spotTokenKey = `${data.spot.segment}|${data.spot.token}`;
+                        // Subscribe spot
+                        fetch('/api/subscribe_active_symbol', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: data.spot.token.toString(), segment: data.spot.segment })
+                        }).catch(e => console.error(e));
+                    } else {
+                        spotTokenKey = null;
+                        spotPrice = 0.0;
+                    }
+
+                    renderOptionChainTable();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="15" style="text-align: center; padding: 32px 0; color: var(--error);">${data.error || 'Failed to fetch options'}</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="15" style="text-align: center; padding: 32px 0; color: var(--error);">Error loading option chain.</td></tr>`;
+            }
+        }
+
+        async function renderOptionChainTable() {
+            const expirySelect = document.getElementById('chain_expiry_select');
+            const expiry = expirySelect.value;
+            const tbody = document.getElementById('option_chain_tbody');
+
+            if (!expiry || optionChainData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="15" style="text-align: center; padding: 32px 0; color: var(--text-secondary);">Select a valid expiry date.</td></tr>`;
+                return;
+            }
+
+            // Filter options for selected expiry
+            const filtered = optionChainData.filter(opt => opt.expiry === expiry);
+
+            // Group by Strike
+            const strikesMap = {};
+            filtered.forEach(opt => {
+                const strike = opt.strike;
+                if (!strikesMap[strike]) {
+                    strikesMap[strike] = { strike: strike, CE: null, PE: null };
+                }
+                strikesMap[strike][opt.option_type] = opt;
+            });
+
+            let sortedStrikes = Object.values(strikesMap).sort((a, b) => a.strike - b.strike);
+
+            // Filter visible strikes centered around Spot Price
+            const strikesCountVal = document.getElementById('chain_strikes_count').value;
+            if (strikesCountVal !== 'all' && sortedStrikes.length > 0) {
+                const count = parseInt(strikesCountVal);
+                let centerIdx = 0;
+                
+                if (spotPrice > 0) {
+                    // Find index closest to spot
+                    let minDiff = Infinity;
+                    sortedStrikes.forEach((item, idx) => {
+                        const diff = Math.abs(item.strike - spotPrice);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            centerIdx = idx;
+                        }
+                    });
+                } else {
+                    // Fallback: center around the middle strike of all loaded strikes
+                    centerIdx = Math.floor(sortedStrikes.length / 2);
+                }
+
+                const half = Math.floor(count / 2);
+                let start = Math.max(0, centerIdx - half);
+                let end = Math.min(sortedStrikes.length, centerIdx + half);
+                
+                // Adjust windows if edge reached
+                if (start === 0) end = Math.min(sortedStrikes.length, count);
+                if (end === sortedStrikes.length) start = Math.max(0, sortedStrikes.length - count);
+
+                sortedStrikes = sortedStrikes.slice(start, end);
+            }
+
+            // Unsubscribe old option tokens
+            if (activeOptionTokens.size > 0) {
+                activeOptionTokens.forEach(tokenKey => {
+                    const parts = tokenKey.split('|');
+                    fetch('/api/unsubscribe_active_symbol', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: parts[1], segment: parts[0] })
+                    }).catch(e => console.error(e));
+                });
+                activeOptionTokens.clear();
+            }
+
+            // Find ATM strike closest to spot
+            let atmStrike = null;
+            if (spotPrice > 0 && sortedStrikes.length > 0) {
+                let minDiff = Infinity;
+                sortedStrikes.forEach(item => {
+                    const diff = Math.abs(item.strike - spotPrice);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        atmStrike = item.strike;
+                    }
+                });
+            }
+
+            // Populate table and prepare dynamic subscriptions
+            let html = '';
+            sortedStrikes.forEach(row => {
+                const strike = row.strike;
+                const ce = row.CE;
+                const pe = row.PE;
+
+                // Unique IDs for DOM cells to update them directly
+                const cePrefix = ce ? `ce-${ce.token}` : `ce-empty-${strike}`;
+                const pePrefix = pe ? `pe-${pe.token}` : `pe-empty-${strike}`;
+
+                if (ce) activeOptionTokens.add(`${ce.segment}|${ce.token}`);
+                if (pe) activeOptionTokens.add(`${pe.segment}|${pe.token}`);
+
+                // Shading logic: ITM options get shaded backgrounds
+                // Call ITM is when Strike < Spot Price
+                // Put ITM is when Strike > Spot Price
+                const isCeItm = spotPrice > 0 && strike < spotPrice;
+                const isPeItm = spotPrice > 0 && strike > spotPrice;
+
+                const ceClass = isCeItm ? 'itm-cell' : 'otm-cell';
+                const peClass = isPeItm ? 'itm-cell' : 'otm-cell';
+                const strikeClass = (strike === atmStrike) ? 'atm-strike-cell' : '';
+
+                // CE Columns (left)
+                const ceLtp = ce && priceCache[`${ce.segment}|${ce.token}`]?.ltp || '0.00';
+                const ceVol = ce && priceCache[`${ce.segment}|${ce.token}`]?.volume || '0';
+                const ceOi = ce && priceCache[`${ce.segment}|${ce.token}`]?.oi || '0';
+                const ceBidQty = ce && priceCache[`${ce.segment}|${ce.token}`]?.bid_qty || '0';
+                const ceBidPrc = ce && priceCache[`${ce.segment}|${ce.token}`]?.bid_price || '0.00';
+                const ceAskPrc = ce && priceCache[`${ce.segment}|${ce.token}`]?.ask_price || '0.00';
+                const ceAskQty = ce && priceCache[`${ce.segment}|${ce.token}`]?.ask_qty || '0';
+
+                // PE Columns (right)
+                const peLtp = pe && priceCache[`${pe.segment}|${pe.token}`]?.ltp || '0.00';
+                const peVol = pe && priceCache[`${pe.segment}|${pe.token}`]?.volume || '0';
+                const peOi = pe && priceCache[`${pe.segment}|${pe.token}`]?.oi || '0';
+                const peBidQty = pe && priceCache[`${pe.segment}|${pe.token}`]?.bid_qty || '0';
+                const peBidPrc = pe && priceCache[`${pe.segment}|${pe.token}`]?.bid_price || '0.00';
+                const peAskPrc = pe && priceCache[`${pe.segment}|${pe.token}`]?.ask_price || '0.00';
+                const peAskQty = pe && priceCache[`${pe.segment}|${pe.token}`]?.ask_qty || '0';
+
+                html += `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <!-- Calls -->
+                        <td id="${cePrefix}-vol" class="col-vol ${ceClass}" style="padding: 10px 4px; color: var(--text-secondary);">${ceVol}</td>
+                        <td id="${cePrefix}-oi" class="col-oi ${ceClass}" style="padding: 10px 4px; color: var(--text-secondary);">${ceOi}</td>
+                        <td id="${cePrefix}-bidqty" class="col-bidqty ${ceClass}" style="padding: 10px 4px; text-align: right; color: var(--success);">${ceBidQty}</td>
+                        <td id="${cePrefix}-bidprice" class="col-bidprice ${ceClass}" style="padding: 10px 4px; text-align: right; color: var(--success);">₹${parseFloat(ceBidPrc).toFixed(2)}</td>
+                        <td id="${cePrefix}-askprice" class="col-askprice ${ceClass}" style="padding: 10px 4px; text-align: right; color: var(--error);">₹${parseFloat(ceAskPrc).toFixed(2)}</td>
+                        <td id="${cePrefix}-askqty" class="col-askqty ${ceClass}" style="padding: 10px 4px; text-align: right; color: var(--error);">${ceAskQty}</td>
+                        <td id="${cePrefix}-ltp" class="col-ltp ${ceClass}" style="padding: 10px 4px; text-align: right; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.08);">₹${parseFloat(ceLtp).toFixed(2)}</td>
+                        
+                        <!-- Strike -->
+                        <td class="${strikeClass}" style="padding: 10px 4px; font-weight: bold; background: rgba(255,255,255,0.04); color: var(--accent-gold);">₹${strike.toFixed(2)}</td>
+                        
+                        <!-- Puts -->
+                        <td id="${pePrefix}-ltp" class="col-ltp ${peClass}" style="padding: 10px 4px; text-align: right; font-weight: bold; border-left: 1px solid rgba(255,255,255,0.08);">₹${parseFloat(peLtp).toFixed(2)}</td>
+                        <td id="${pePrefix}-askqty" class="col-askqty ${peClass}" style="padding: 10px 4px; text-align: right; color: var(--error);">${peAskQty}</td>
+                        <td id="${pePrefix}-askprice" class="col-askprice ${peClass}" style="padding: 10px 4px; text-align: right; color: var(--error);">₹${parseFloat(peAskPrc).toFixed(2)}</td>
+                        <td id="${pePrefix}-bidprice" class="col-bidprice ${peClass}" style="padding: 10px 4px; text-align: right; color: var(--success);">₹${parseFloat(peBidPrc).toFixed(2)}</td>
+                        <td id="${pePrefix}-bidqty" class="col-bidqty ${peClass}" style="padding: 10px 4px; text-align: right; color: var(--success);">${peBidQty}</td>
+                        <td id="${pePrefix}-oi" class="col-oi ${peClass}" style="padding: 10px 4px; color: var(--text-secondary);">${peOi}</td>
+                        <td id="${pePrefix}-vol" class="col-vol ${peClass}" style="padding: 10px 4px; color: var(--text-secondary);">${peVol}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html || '<tr><td colspan="15" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No options found for selection.</td></tr>';
+
+            // Subscribe to all these active option contract tokens
+            activeOptionTokens.forEach(tokenKey => {
+                const parts = tokenKey.split('|');
+                fetch('/api/subscribe_active_symbol', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: parts[1], segment: parts[0] })
+                }).catch(e => console.error(e));
+            });
+
+            applyColumnsVisibility();
+        }
+
+        function updateLiveOptionChain(key, data) {
+            // Update Spot Price display if matches
+            if (spotTokenKey && key === spotTokenKey) {
+                spotPrice = parseFloat(data.ltp);
+                const spotDisplay = document.getElementById('chain-spot-price');
+                if (spotDisplay) spotDisplay.textContent = `₹${spotPrice.toFixed(2)}`;
+                
+                // Re-apply ITM / OTM shading and ATM highlighting when spot price changes
+                const rows = document.querySelectorAll('#option_chain_tbody tr');
+                
+                // Find new ATM strike
+                let atmStrike = null;
+                let minDiff = Infinity;
+                rows.forEach(row => {
+                    const strikeCell = row.querySelector('td:nth-child(8)');
+                    if (strikeCell) {
+                        const strike = parseFloat(strikeCell.textContent.replace('₹', ''));
+                        const diff = Math.abs(strike - spotPrice);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            atmStrike = strike;
+                        }
+                    }
+                });
+
+                rows.forEach(row => {
+                    const strikeCell = row.querySelector('td:nth-child(8)');
+                    if (!strikeCell) return;
+                    
+                    const strike = parseFloat(strikeCell.textContent.replace('₹', ''));
+                    const isCeItm = spotPrice > 0 && strike < spotPrice;
+                    const isPeItm = spotPrice > 0 && strike > spotPrice;
+
+                    // Update ATM Strike class
+                    if (strike === atmStrike) {
+                        strikeCell.classList.add('atm-strike-cell');
+                    } else {
+                        strikeCell.classList.remove('atm-strike-cell');
+                    }
+
+                    // Update left cells (Calls: columns 1 to 7)
+                    for (let i = 1; i <= 7; i++) {
+                        const cell = row.querySelector(`td:nth-child(${i})`);
+                        if (cell) {
+                            cell.style.background = ''; // Clear old manual styling
+                            if (isCeItm) {
+                                cell.classList.add('itm-cell');
+                                cell.classList.remove('otm-cell');
+                            } else {
+                                cell.classList.add('otm-cell');
+                                cell.classList.remove('itm-cell');
+                            }
+                        }
+                    }
+
+                    // Update right cells (Puts: columns 9 to 15)
+                    for (let i = 9; i <= 15; i++) {
+                        const cell = row.querySelector(`td:nth-child(${i})`);
+                        if (cell) {
+                            cell.style.background = ''; // Clear old manual styling
+                            if (isPeItm) {
+                                cell.classList.add('itm-cell');
+                                cell.classList.remove('otm-cell');
+                            } else {
+                                cell.classList.add('otm-cell');
+                                cell.classList.remove('itm-cell');
+                            }
+                        }
+                    }
+                });
+                return;
+            }
+
+            // Update specific contract cells if token matches
+            const parts = key.split('|');
+            const token = parts[1];
+            
+            // Check Calls
+            const ceVol = document.getElementById(`ce-${token}-vol`);
+            if (ceVol) {
+                ceVol.textContent = data.volume || '0';
+                document.getElementById(`ce-${token}-oi`).textContent = data.oi || '0';
+                document.getElementById(`ce-${token}-bidqty`).textContent = data.bid_qty || '0';
+                document.getElementById(`ce-${token}-bidprice`).textContent = `₹${parseFloat(data.bid_price).toFixed(2)}`;
+                document.getElementById(`ce-${token}-askprice`).textContent = `₹${parseFloat(data.ask_price).toFixed(2)}`;
+                document.getElementById(`ce-${token}-askqty`).textContent = data.ask_qty || '0';
+                document.getElementById(`ce-${token}-ltp`).textContent = `₹${parseFloat(data.ltp).toFixed(2)}`;
+            }
+
+            // Check Puts
+            const peLtp = document.getElementById(`pe-${token}-ltp`);
+            if (peLtp) {
+                peLtp.textContent = `₹${parseFloat(data.ltp).toFixed(2)}`;
+                document.getElementById(`pe-${token}-askqty`).textContent = data.ask_qty || '0';
+                document.getElementById(`pe-${token}-askprice`).textContent = `₹${parseFloat(data.ask_price).toFixed(2)}`;
+                document.getElementById(`pe-${token}-bidprice`).textContent = `₹${parseFloat(data.bid_price).toFixed(2)}`;
+                document.getElementById(`pe-${token}-bidqty`).textContent = data.bid_qty || '0';
+                document.getElementById(`pe-${token}-oi`).textContent = data.oi || '0';
+                document.getElementById(`pe-${token}-vol`).textContent = data.volume || '0';
             }
         }
     </script>

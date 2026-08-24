@@ -261,6 +261,285 @@ def place_basket_order():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/orders', methods=['GET'])
+def get_orders():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        logging.info("Fetching order book...")
+        order_response = neo_client.order_report()
+        return jsonify({
+            'success': True,
+            'orders': order_response
+        })
+    except Exception as e:
+        logging.error(f"Error fetching order book: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/trades', methods=['GET'])
+def get_trades():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        logging.info("Fetching trade report...")
+        trade_response = neo_client.trade_report()
+        return jsonify({
+            'success': True,
+            'trades': trade_response
+        })
+    except Exception as e:
+        logging.error(f"Error fetching trade report: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/positions', methods=['GET'])
+def get_positions():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        logging.info("Fetching positions...")
+        positions_response = neo_client.positions()
+        return jsonify({
+            'success': True,
+            'positions': positions_response
+        })
+    except Exception as e:
+        logging.error(f"Error fetching positions: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/holdings', methods=['GET'])
+def get_holdings():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        logging.info("Fetching portfolio holdings...")
+        holdings_response = neo_client.holdings()
+        return jsonify({
+            'success': True,
+            'holdings': holdings_response
+        })
+    except Exception as e:
+        logging.error(f"Error fetching holdings: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/cancel_order', methods=['POST'])
+def cancel_order():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        data = request.json or {}
+        order_id = data.get('order_id')
+        amo = data.get('amo', 'NO')
+        if not order_id:
+            return jsonify({'success': False, 'error': 'order_id is required'}), 400
+
+        logging.info(f"Cancelling order {order_id}...")
+        response = neo_client.cancel_order(order_id=str(order_id), amo=amo)
+        return jsonify({
+            'success': True,
+            'response': response
+        })
+    except Exception as e:
+        logging.error(f"Error cancelling order {order_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/modify_order', methods=['POST'])
+def modify_order():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        data = request.json or {}
+        order_id = data.get('order_id')
+        price = data.get('price')
+        order_type = data.get('order_type')
+        quantity = data.get('quantity')
+        validity = data.get('validity', 'DAY')
+        trigger_price = data.get('trigger_price', '0')
+        disclosed_quantity = data.get('disclosed_quantity', '0')
+        amo = data.get('amo', 'NO')
+
+        if not (order_id and price is not None and order_type and quantity):
+            return jsonify({'success': False, 'error': 'Missing required fields for order modification'}), 400
+
+        logging.info(f"Modifying order {order_id}...")
+        response = neo_client.modify_order(
+            order_id=str(order_id),
+            price=str(price),
+            order_type=order_type,
+            quantity=str(quantity),
+            validity=validity,
+            trigger_price=str(trigger_price),
+            disclosed_quantity=str(disclosed_quantity),
+            amo=amo
+        )
+        return jsonify({
+            'success': True,
+            'response': response
+        })
+    except Exception as e:
+        logging.error(f"Error modifying order {order_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/option_chain_instruments', methods=['GET'])
+def option_chain_instruments():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        symbol = request.args.get('symbol', '').strip().upper()
+        if not symbol:
+            return jsonify({'success': False, 'error': 'symbol parameter is required'}), 400
+
+        logging.info(f"Fetching option chain instruments for symbol {symbol}...")
+        
+        raw_options = neo_client.search_scrip(
+            exchange_segment="nse_fo",
+            symbol=symbol,
+            option_type="CE,PE",
+            ignore_50multiple=False
+        )
+
+        if isinstance(raw_options, dict) and "error" in raw_options:
+            return jsonify({'success': False, 'error': raw_options["error"]}), 400
+        
+        if not isinstance(raw_options, list):
+            return jsonify({'success': True, 'options': [], 'expiries': []})
+
+        clean_options = []
+        expiries = set()
+        
+        for scrip in raw_options:
+            sym_name = scrip.get('pSymbolName', '').strip().upper()
+            if sym_name == symbol:
+                opt_type = scrip.get('pOptionType', '').strip().upper()
+                if opt_type in ['CE', 'PE']:
+                    exp = scrip.get('pExpiryDate', '').strip()
+                    if exp:
+                        expiries.add(exp)
+                    
+                    strike_raw = scrip.get('dStrikePrice;', scrip.get('dStrikePrice', 0))
+                    try:
+                        strike = float(strike_raw) / 100.0
+                    except (ValueError, TypeError):
+                        strike = 0.0
+
+                    clean_options.append({
+                        'token': scrip.get('pSymbol') or scrip.get('pContractId'),
+                        'trading_symbol': scrip.get('pTrdSymbol'),
+                        'segment': scrip.get('pExchSeg', 'nse_fo'),
+                        'symbol_name': sym_name,
+                        'option_type': opt_type,
+                        'strike': strike,
+                        'expiry': exp
+                    })
+
+        from datetime import datetime
+        def parse_exp(e_str):
+            try:
+                return datetime.strptime(e_str, "%d%b%Y")
+            except Exception:
+                return datetime.max
+
+        sorted_expiries = sorted(list(expiries), key=parse_exp)
+
+        # Determine spot info
+        spot_token = None
+        spot_segment = "nse_cm"
+        spot_symbol = ""
+        
+        if symbol == "NIFTY":
+            spot_token = "Nifty 50"
+            spot_symbol = "Nifty 50"
+        elif symbol == "BANKNIFTY":
+            spot_token = "Nifty Bank"
+            spot_symbol = "Nifty Bank"
+        elif symbol == "FINNIFTY":
+            spot_token = "Nifty Fin Services"
+            spot_symbol = "Nifty Fin Services"
+        else:
+            try:
+                stock_res = neo_client.search_scrip(exchange_segment="nse_cm", symbol=symbol)
+                if isinstance(stock_res, list) and len(stock_res) > 0:
+                    exact_stock = None
+                    for s in stock_res:
+                        if s.get('pSymbolName', '').strip().upper() == symbol:
+                            exact_stock = s
+                            break
+                    if not exact_stock:
+                        exact_stock = stock_res[0]
+                    spot_token = exact_stock.get('pSymbol') or exact_stock.get('pContractId')
+                    spot_symbol = exact_stock.get('pTrdSymbol') or exact_stock.get('pSymbolName')
+            except Exception as e:
+                logging.error(f"Error searching spot stock: {e}")
+        
+        return jsonify({
+            'success': True,
+            'options': clean_options,
+            'expiries': sorted_expiries,
+            'spot': {
+                'token': spot_token,
+                'segment': spot_segment,
+                'symbol': spot_symbol
+            }
+        })
+
+    except Exception as e:
+        logging.error(f"Error in option chain fetch: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/fno_symbols', methods=['GET'])
+def get_fno_symbols():
+    global neo_client
+    if neo_client is None:
+        return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+    try:
+        from neo_api_client.utils import scrip_cache
+        import pandas as pd
+        import io
+
+        csv_content = scrip_cache.read_csv("nse_fo")
+        if csv_content is None:
+            # Trigger quick search to force download and cache of NSE_FO.csv
+            try:
+                neo_client.search_scrip(exchange_segment="nse_fo", symbol="NIFTY", option_type="CE")
+                csv_content = scrip_cache.read_csv("nse_fo")
+            except Exception as e:
+                logging.error(f"Error downloading F&O CSV: {e}")
+
+        if csv_content is None:
+            return jsonify({'success': True, 'symbols': ['NIFTY', 'BANKNIFTY', 'FINNIFTY']})
+
+        df = pd.read_csv(io.BytesIO(csv_content), low_memory=False)
+        df = df.rename(columns=lambda x: x.strip())
+
+        unique_symbols = df['pSymbolName'].dropna().str.strip().str.upper().unique().tolist()
+        unique_symbols.sort()
+
+        indices = ["NIFTY", "BANKNIFTY", "FINNIFTY"]
+        other_symbols = [s for s in unique_symbols if s not in indices]
+        final_list = indices + other_symbols
+
+        return jsonify({
+            'success': True,
+            'symbols': final_list
+        })
+    except Exception as e:
+        logging.error(f"Error fetching FnO symbols: {str(e)}")
+        return jsonify({'success': True, 'symbols': ['NIFTY', 'BANKNIFTY', 'FINNIFTY']})
+
+
 # =====================================================================
 # Watchlist, Search and Live WebSocket Streaming implementation
 # =====================================================================
@@ -445,6 +724,11 @@ async def kotak_sfeed_loop():
                             "change": message.net_change,
                             "change_percent": message.net_change_percent,
                             "volume": getattr(message, 'volume_traded_today', 0),
+                            "oi": getattr(message, 'open_interest', 0),
+                            "bid_qty": message.buy[0].quantity if (message.buy and len(message.buy) > 0) else 0,
+                            "bid_price": message.buy[0].price if (message.buy and len(message.buy) > 0) else 0.0,
+                            "ask_qty": message.sell[0].quantity if (message.sell and len(message.sell) > 0) else 0,
+                            "ask_price": message.sell[0].price if (message.sell and len(message.sell) > 0) else 0.0,
                             "buy": [{"quantity": b.quantity, "price": b.price, "orders": b.orders} for b in message.buy] if message.buy else [],
                             "sell": [{"quantity": s.quantity, "price": s.price, "orders": s.orders} for s in message.sell] if message.sell else []
                         }
