@@ -20,6 +20,7 @@ except ImportError:
     pyotp = None
 
 app = Flask(__name__)
+app.debug = True
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -199,6 +200,34 @@ def unsubscribe_active_symbol():
         return jsonify({'success': False, 'error': 'Missing token or segment'}), 400
     
     unsubscribe_scrip_in_background(segment, token)
+    return jsonify({'success': True})
+
+@app.route('/api/subscribe_symbols', methods=['POST'])
+def subscribe_symbols():
+    data = request.json or {}
+    symbols = data.get('symbols', [])
+    if not symbols:
+        return jsonify({'success': False, 'error': 'No symbols provided'}), 400
+    
+    for sym in symbols:
+        token = str(sym.get('token', '')).strip()
+        segment = sym.get('segment', '').strip()
+        if token and segment:
+            subscribe_scrip_in_background(segment, token)
+    return jsonify({'success': True})
+
+@app.route('/api/unsubscribe_symbols', methods=['POST'])
+def unsubscribe_symbols():
+    data = request.json or {}
+    symbols = data.get('symbols', [])
+    if not symbols:
+        return jsonify({'success': False, 'error': 'No symbols provided'}), 400
+    
+    for sym in symbols:
+        token = str(sym.get('token', '')).strip()
+        segment = sym.get('segment', '').strip()
+        if token and segment:
+            unsubscribe_scrip_in_background(segment, token)
     return jsonify({'success': True})
 
 @app.route('/api/place_basket_order', methods=['POST'])
@@ -653,7 +682,7 @@ async def broadcast_to_local_clients(message):
         return
     data_str = json.dumps(message)
     websockets_to_remove = set()
-    for client in local_clients:
+    for client in list(local_clients):
         try:
             await client.send(data_str)
         except Exception:
@@ -694,7 +723,7 @@ async def start_local_websocket_server():
 
 async def kotak_sfeed_loop():
     global kotak_ws, neo_client
-    from neo_api_client.websocket.feed import WsToken, SFeedScrip
+    from neo_api_client.websocket.feed import WsToken, SFeedScrip, SFeedIndex
     
     while True:
         if neo_client is None:
@@ -717,20 +746,24 @@ async def kotak_sfeed_loop():
                     await ws.subscribe_depth(tokens_to_sub)
                 
                 async for message in ws:
-                    if isinstance(message, SFeedScrip):
-                        key = f"{message.exchange_segment}|{message.instrument_token}"
+                    if isinstance(message, (SFeedScrip, SFeedIndex)):
+                        token_val = message.name if isinstance(message, SFeedIndex) else message.instrument_token
+                        key = f"{message.exchange_segment}|{token_val}"
+                        buy_list = getattr(message, 'buy', None)
+                        sell_list = getattr(message, 'sell', None)
+                        
                         update_data = {
                             "ltp": message.last_traded_price,
-                            "change": message.net_change,
+                            "change": getattr(message, 'net_change', 0.0) if hasattr(message, 'net_change') else getattr(message, 'change', 0.0),
                             "change_percent": message.net_change_percent,
                             "volume": getattr(message, 'volume_traded_today', 0),
                             "oi": getattr(message, 'open_interest', 0),
-                            "bid_qty": message.buy[0].quantity if (message.buy and len(message.buy) > 0) else 0,
-                            "bid_price": message.buy[0].price if (message.buy and len(message.buy) > 0) else 0.0,
-                            "ask_qty": message.sell[0].quantity if (message.sell and len(message.sell) > 0) else 0,
-                            "ask_price": message.sell[0].price if (message.sell and len(message.sell) > 0) else 0.0,
-                            "buy": [{"quantity": b.quantity, "price": b.price, "orders": b.orders} for b in message.buy] if message.buy else [],
-                            "sell": [{"quantity": s.quantity, "price": s.price, "orders": s.orders} for s in message.sell] if message.sell else []
+                            "bid_qty": buy_list[0].quantity if (buy_list and len(buy_list) > 0) else 0,
+                            "bid_price": buy_list[0].price if (buy_list and len(buy_list) > 0) else 0.0,
+                            "ask_qty": sell_list[0].quantity if (sell_list and len(sell_list) > 0) else 0,
+                            "ask_price": sell_list[0].price if (sell_list and len(sell_list) > 0) else 0.0,
+                            "buy": [{"quantity": b.quantity, "price": b.price, "orders": b.orders} for b in buy_list] if buy_list else [],
+                            "sell": [{"quantity": s.quantity, "price": s.price, "orders": s.orders} for s in sell_list] if sell_list else []
                         }
                         price_cache[key] = update_data
                         await broadcast_to_local_clients({
@@ -777,21 +810,31 @@ def subscribe_scrip_in_background(segment, token):
     global bg_loop, kotak_ws
     from neo_api_client.websocket.feed import WsToken
     if bg_loop and kotak_ws and bg_loop.is_running():
-        asyncio.run_coroutine_threadsafe(
-            kotak_ws.subscribe_depth([WsToken(segment, str(token))]),
-            bg_loop
-        )
-        logging.info(f"Requested background depth subscription for {segment}|{token}")
+        token_str = str(token)
+        is_index = token_str in ["Nifty 50", "Nifty Bank", "Nifty Fin Services"]
+        
+        if is_index:
+            coro = kotak_ws.subscribe_index([WsToken(segment, token_str)])
+        else:
+            coro = kotak_ws.subscribe_depth([WsToken(segment, token_str)])
+
+        asyncio.run_coroutine_threadsafe(coro, bg_loop)
+        logging.info(f"Requested background {'index' if is_index else 'depth'} subscription for {segment}|{token}")
 
 def unsubscribe_scrip_in_background(segment, token):
     global bg_loop, kotak_ws
     from neo_api_client.websocket.feed import WsToken
     if bg_loop and kotak_ws and bg_loop.is_running():
-        asyncio.run_coroutine_threadsafe(
-            kotak_ws.unsubscribe_depth([WsToken(segment, str(token))]),
-            bg_loop
-        )
-        logging.info(f"Requested background depth unsubscription for {segment}|{token}")
+        token_str = str(token)
+        is_index = token_str in ["Nifty 50", "Nifty Bank", "Nifty Fin Services"]
+
+        if is_index:
+            coro = kotak_ws.unsubscribe_index([WsToken(segment, token_str)])
+        else:
+            coro = kotak_ws.unsubscribe_depth([WsToken(segment, token_str)])
+
+        asyncio.run_coroutine_threadsafe(coro, bg_loop)
+        logging.info(f"Requested background {'index' if is_index else 'depth'} unsubscription for {segment}|{token}")
 
 # Prevent thread duplication when Flask runs in debug mode with reloader enabled
 if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:

@@ -3346,17 +3346,31 @@
                         }).catch(e => console.error(e));
                     }
 
+                    // Reset spot price immediately to avoid stale prices from previous symbols
+                    spotPrice = 0.0;
+
                     if (data.spot && data.spot.token) {
                         spotTokenKey = `${data.spot.segment}|${data.spot.token}`;
+                        
                         // Subscribe spot
                         fetch('/api/subscribe_active_symbol', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ token: data.spot.token.toString(), segment: data.spot.segment })
                         }).catch(e => console.error(e));
+
+                        // Pre-populate spot price if it exists in cache
+                        if (priceCache[spotTokenKey] && priceCache[spotTokenKey].ltp) {
+                            spotPrice = parseFloat(priceCache[spotTokenKey].ltp);
+                        }
                     } else {
                         spotTokenKey = null;
-                        spotPrice = 0.0;
+                    }
+
+                    // Update UI display for spot price
+                    const spotDisplay = document.getElementById('chain-spot-price');
+                    if (spotDisplay) {
+                        spotDisplay.textContent = `₹${spotPrice.toFixed(2)}`;
                     }
 
                     renderOptionChainTable();
@@ -3415,27 +3429,25 @@
                     centerIdx = Math.floor(sortedStrikes.length / 2);
                 }
 
-                const half = Math.floor(count / 2);
+                const half = count;
                 let start = Math.max(0, centerIdx - half);
-                let end = Math.min(sortedStrikes.length, centerIdx + half);
-                
-                // Adjust windows if edge reached
-                if (start === 0) end = Math.min(sortedStrikes.length, count);
-                if (end === sortedStrikes.length) start = Math.max(0, sortedStrikes.length - count);
+                let end = Math.min(sortedStrikes.length, centerIdx + half + 1);
 
                 sortedStrikes = sortedStrikes.slice(start, end);
             }
 
-            // Unsubscribe old option tokens
+            // Unsubscribe old option tokens in a single batch
             if (activeOptionTokens.size > 0) {
+                const unsubscribeList = [];
                 activeOptionTokens.forEach(tokenKey => {
                     const parts = tokenKey.split('|');
-                    fetch('/api/unsubscribe_active_symbol', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ token: parts[1], segment: parts[0] })
-                    }).catch(e => console.error(e));
+                    unsubscribeList.push({ token: parts[1], segment: parts[0] });
                 });
+                fetch('/api/unsubscribe_symbols', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbols: unsubscribeList })
+                }).catch(e => console.error("Batch unsubscribe failed:", e));
                 activeOptionTokens.clear();
             }
 
@@ -3522,15 +3534,19 @@
 
             tbody.innerHTML = html || '<tr><td colspan="15" style="text-align: center; padding: 24px 0; color: var(--text-secondary);">No options found for selection.</td></tr>';
 
-            // Subscribe to all these active option contract tokens
-            activeOptionTokens.forEach(tokenKey => {
-                const parts = tokenKey.split('|');
-                fetch('/api/subscribe_active_symbol', {
+            // Subscribe to all these active option contract tokens in a single batch
+            if (activeOptionTokens.size > 0) {
+                const subscribeList = [];
+                activeOptionTokens.forEach(tokenKey => {
+                    const parts = tokenKey.split('|');
+                    subscribeList.push({ token: parts[1], segment: parts[0] });
+                });
+                fetch('/api/subscribe_symbols', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: parts[1], segment: parts[0] })
-                }).catch(e => console.error(e));
-            });
+                    body: JSON.stringify({ symbols: subscribeList })
+                }).catch(e => console.error("Batch subscribe failed:", e));
+            }
 
             applyColumnsVisibility();
         }
