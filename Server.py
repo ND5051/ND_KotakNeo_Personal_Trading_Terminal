@@ -708,7 +708,7 @@ async def local_ws_handler(websocket):
 async def start_local_websocket_server():
     logging.info("Starting local WebSocket server on port 5001...")
     try:
-        async with websockets.serve(local_ws_handler, "127.0.0.1", 5001):
+        async with websockets.serve(local_ws_handler, "0.0.0.0", 5001):
             try:
                 await asyncio.Future()
             except asyncio.CancelledError:
@@ -842,4 +842,4 @@ if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
     bg_thread.start()
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
