@@ -2553,8 +2553,14 @@
                 try { localWs.close(); } catch (e) { }
             }
 
-            console.log('Connecting to local price broadcast WebSocket...');
-            localWs = new WebSocket('ws://' + window.location.hostname + ':5001');
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            let wsUrl = '';
+            if (window.location.protocol === 'https:') {
+                wsUrl = wsProtocol + '//' + window.location.hostname + '/ws';
+            } else {
+                wsUrl = wsProtocol + '//' + window.location.hostname + ':5001';
+            }
+            localWs = new WebSocket(wsUrl);
 
             localWs.onmessage = function (event) {
                 try {
